@@ -49,16 +49,18 @@ export default function GeneratorPage() {
             </div>
           </Link>
 
-          {/* Proposal Italy - Coming Soon */}
-          <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed border-border bg-muted/30 p-8 opacity-60">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted text-muted-foreground">
+          <Link
+            href="/generator/proposal-italy"
+            className="group flex flex-col items-center gap-4 rounded-lg border border-border bg-card p-8 shadow-sm transition-all hover:border-[rgb(41,84,144)] hover:shadow-md"
+          >
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[rgb(41,84,144)]/10 text-[rgb(41,84,144)] transition-colors group-hover:bg-[rgb(41,84,144)] group-hover:text-white">
               <FileSpreadsheet className="h-8 w-8" />
             </div>
             <div className="text-center">
-              <h3 className="font-semibold text-muted-foreground">Proposal Italy</h3>
-              <p className="mt-1 text-sm text-muted-foreground">Coming soon</p>
+              <h3 className="font-semibold text-foreground">Proposal Italy</h3>
+              <p className="mt-1 text-sm text-muted-foreground">Generate study abroad proposals</p>
             </div>
-          </div>
+          </Link>
         </div>
       </main>
     </div>
