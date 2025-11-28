@@ -160,17 +160,17 @@ export async function generateProposalItalyPDF(data: ProposalItalyData): Promise
   )
   y += sp5 + 4
 
-  // Section 5: University Proposals - renumbered to 4
-  drawSectionTitle("4. UNIVERSITY PROPOSALS")
+  // Section 5: University Proposals
+  drawSectionTitle("5. UNIVERSITY PROPOSALS")
   if (data.universityProposals.length > 0) {
-    const colWidths = [8, 45, 50, 25, 25, 25]
-    const headers = ["#", "University", "Course", "Tuition", "App Fees", "Total"]
+    const colWidths = [8, 40, 50, 15, 27, 30]
+    const headers = ["#", "University", "Course", "Link", "Notes", "App Fees"]
 
     checkPageBreak(30)
     doc.setFillColor(...brandColor)
     doc.rect(margin, y, contentWidth, 7, "F")
     doc.setTextColor(255, 255, 255)
-    doc.setFontSize(8)
+    doc.setFontSize(7)
     doc.setFont("helvetica", "bold")
 
     let xPos = margin
@@ -187,23 +187,65 @@ export async function generateProposalItalyPDF(data: ProposalItalyData): Promise
       doc.rect(margin, y, contentWidth, 7, "F")
       doc.setTextColor(0, 0, 0)
       doc.setFont("helvetica", "normal")
+      doc.setFontSize(7)
 
-      const total = proposal.tuitionFees + proposal.applicationFees
+      const noteText = proposal.notes || "-"
+      const noteLines = doc.splitTextToSize(noteText, colWidths[4] - 2)
+      const rowHeight = Math.max(7, noteLines.length * 4 + 1)
+
+      doc.setFillColor(...bgColor)
+      doc.rect(margin, y, contentWidth, rowHeight, "F")
+      doc.setTextColor(0, 0, 0)
+
       const rowData = [
         (index + 1).toString(),
-        proposal.universityName.substring(0, 22),
-        proposal.courseName.substring(0, 25),
-        formatCurrency(proposal.tuitionFees),
+        proposal.universityName.substring(0, 18),
+        proposal.courseName.substring(0, 20),
+        proposal.courseLink ? "Link" : "-", // replaced emoji with text "Link"
+        "", // notes will be handled separately with wrapping
         formatCurrency(proposal.applicationFees),
-        formatCurrency(total),
       ]
 
       xPos = margin
-      rowData.forEach((cell, i) => {
-        doc.text(cell, xPos + 2, y + 5)
-        xPos += colWidths[i]
+      const col0X = margin
+      const col1X = col0X + colWidths[0]
+      const col2X = col1X + colWidths[1]
+      const col3X = col2X + colWidths[2]
+      const col4X = col3X + colWidths[3]
+      const col5X = col4X + colWidths[4]
+
+      // Column 0: #
+      doc.text(rowData[0], col0X + 2, y + 4)
+
+      // Column 1: University
+      const uni = doc.splitTextToSize(rowData[1], colWidths[1] - 2)
+      doc.text(uni[0] || "", col1X + 2, y + 4)
+
+      // Column 2: Course
+      const course = doc.splitTextToSize(rowData[2], colWidths[2] - 2)
+      doc.text(course[0] || "", col2X + 2, y + 4)
+
+      // Column 3: Link
+      if (proposal.courseLink) {
+        doc.setTextColor(...brandColor)
+        doc.setFont("helvetica", "normal")
+        doc.textWithLink("Link", col3X + 2, y + 4, {
+          url: proposal.courseLink.startsWith("http") ? proposal.courseLink : `https://${proposal.courseLink}`,
+        })
+        doc.setTextColor(0, 0, 0)
+      } else {
+        doc.text("-", col3X + 2, y + 4)
+      }
+
+      // Column 4: Notes (with wrapping)
+      noteLines.forEach((line: string, lineIndex: number) => {
+        doc.text(line, col4X + 2, y + 4 + lineIndex * 4)
       })
-      y += 7
+
+      // Column 5: App Fees (right-aligned)
+      doc.text(rowData[5], col5X + colWidths[5] - 2, y + 4, { align: "right" })
+
+      y += rowHeight
     })
     y += 4
   } else {
@@ -213,7 +255,7 @@ export async function generateProposalItalyPDF(data: ProposalItalyData): Promise
     y += 8
   }
 
-  drawSectionTitle("5. FINANCIAL SUMMARY")
+  drawSectionTitle("6. FINANCIAL SUMMARY")
   checkPageBreak(40)
 
   doc.setFontSize(10)
@@ -258,7 +300,7 @@ export async function generateProposalItalyPDF(data: ProposalItalyData): Promise
 
   y += 4
 
-  // Section 6: Terms & Conditions
+  // Section 7: Terms & Conditions
   const hasTerms =
     data.termsConditions.paymentCommitment ||
     data.termsConditions.nonRefundableFees ||
@@ -266,7 +308,7 @@ export async function generateProposalItalyPDF(data: ProposalItalyData): Promise
     data.termsConditions.additionalTerms
 
   if (hasTerms) {
-    drawSectionTitle("6. TERMS & CONDITIONS")
+    drawSectionTitle("7. TERMS & CONDITIONS")
     doc.setFontSize(9)
 
     let clauseNumber = 1
@@ -298,9 +340,9 @@ export async function generateProposalItalyPDF(data: ProposalItalyData): Promise
     y += 4
   }
 
-  // Section 7: Signatures
+  // Section 8: Signatures
   checkPageBreak(45)
-  drawSectionTitle("7. SIGNATURES")
+  drawSectionTitle("8. SIGNATURES")
   doc.setFontSize(9)
   doc.setFont("helvetica", "normal")
 

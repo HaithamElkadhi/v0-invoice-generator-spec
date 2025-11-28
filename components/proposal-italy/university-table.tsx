@@ -19,7 +19,6 @@ const emptyProposal: Omit<UniversityProposal, "id"> = {
   universityName: "",
   courseName: "",
   courseLink: "",
-  tuitionFees: 0,
   applicationFees: 0,
   notes: "",
 }
@@ -36,7 +35,6 @@ export function UniversityTable({ proposals, onChange }: UniversityTableProps) {
         universityName: proposal.universityName,
         courseName: proposal.courseName,
         courseLink: proposal.courseLink,
-        tuitionFees: proposal.tuitionFees,
         applicationFees: proposal.applicationFees,
         notes: proposal.notes,
       })
@@ -110,29 +108,17 @@ export function UniversityTable({ proposals, onChange }: UniversityTableProps) {
                   placeholder="https://..."
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="tuitionFees">Tuition Fees (EUR)</Label>
-                  <Input
-                    id="tuitionFees"
-                    type="number"
-                    value={formData.tuitionFees || ""}
-                    onChange={(e) => setFormData({ ...formData, tuitionFees: Number.parseFloat(e.target.value) || 0 })}
-                    placeholder="0.00"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="applicationFees">Application Fees (EUR)</Label>
-                  <Input
-                    id="applicationFees"
-                    type="number"
-                    value={formData.applicationFees || ""}
-                    onChange={(e) =>
-                      setFormData({ ...formData, applicationFees: Number.parseFloat(e.target.value) || 0 })
-                    }
-                    placeholder="0.00"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="applicationFees">Application Fees (EUR)</Label>
+                <Input
+                  id="applicationFees"
+                  type="number"
+                  value={formData.applicationFees || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, applicationFees: Number.parseFloat(e.target.value) || 0 })
+                  }
+                  placeholder="0.00"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="notes">Notes</Label>
@@ -169,9 +155,9 @@ export function UniversityTable({ proposals, onChange }: UniversityTableProps) {
                 <TableHead className="w-[50px]">#</TableHead>
                 <TableHead>University</TableHead>
                 <TableHead>Course</TableHead>
-                <TableHead className="text-right">Tuition</TableHead>
+                <TableHead className="w-[80px]">Link</TableHead>
+                <TableHead className="w-[150px]">Notes</TableHead>
                 <TableHead className="text-right">App. Fees</TableHead>
-                <TableHead className="text-right">Total</TableHead>
                 <TableHead className="w-[100px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -180,6 +166,7 @@ export function UniversityTable({ proposals, onChange }: UniversityTableProps) {
                 <TableRow key={proposal.id} className={index % 2 === 0 ? "bg-muted/30" : ""}>
                   <TableCell>{index + 1}</TableCell>
                   <TableCell className="font-medium">{proposal.universityName}</TableCell>
+                  <TableCell>{proposal.courseName}</TableCell>
                   <TableCell>
                     {proposal.courseLink ? (
                       <a
@@ -188,17 +175,14 @@ export function UniversityTable({ proposals, onChange }: UniversityTableProps) {
                         rel="noopener noreferrer"
                         className="text-[rgb(41,84,144)] underline hover:no-underline"
                       >
-                        {proposal.courseName}
+                        🔗
                       </a>
                     ) : (
-                      proposal.courseName
+                      "-"
                     )}
                   </TableCell>
-                  <TableCell className="text-right">{formatCurrency(proposal.tuitionFees)}</TableCell>
+                  <TableCell className="text-sm">{proposal.notes || "-"}</TableCell>
                   <TableCell className="text-right">{formatCurrency(proposal.applicationFees)}</TableCell>
-                  <TableCell className="text-right font-medium">
-                    {formatCurrency(proposal.tuitionFees + proposal.applicationFees)}
-                  </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
                       <Button variant="ghost" size="icon" onClick={() => handleOpen(proposal)}>

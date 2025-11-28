@@ -26,7 +26,6 @@ export interface UniversityProposal {
   universityName: string
   courseName: string
   courseLink: string
-  tuitionFees: number
   applicationFees: number
   notes: string
 }
