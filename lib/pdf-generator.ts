@@ -1,6 +1,6 @@
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
-import { COMPANY_INFO, BANK_DETAILS, BRAND_COLORS, type InvoiceDataWithTotals } from "./invoice-types"
+import { COMPANY_INFO, BANK_DETAILS, PAYPAL_EMAIL, BRAND_COLORS, type InvoiceDataWithTotals } from "./invoice-types"
 
 const formatDateToDDMMYYYY = (dateString: string): string => {
   if (!dateString) return ""
@@ -230,23 +230,27 @@ export async function generateInvoicePDF(data: InvoiceDataWithTotals) {
   doc.setTextColor(60, 60, 60)
 
   if (data.paymentMethods.paypal) {
-    doc.text(`• PayPal: ${COMPANY_INFO.email}`, margin + 3, yPos)
-    yPos += 5
-  }
-
-  if (data.paymentMethods.cash) {
-    doc.text("• Cash payment", margin + 3, yPos)
+    doc.text(`• PayPal: ${PAYPAL_EMAIL}`, margin + 3, yPos)
     yPos += 5
   }
 
   if (data.paymentMethods.bankTransfer) {
     doc.text("• Bank Transfer:", margin + 3, yPos)
     yPos += 5
+    doc.text(`    ${BANK_DETAILS.accountHolder}`, margin + 3, yPos)
+    yPos += 4
+    doc.text(`    Codice Fiscale: ${BANK_DETAILS.codiceFiscale}`, margin + 3, yPos)
+    yPos += 4
     doc.text(`    IBAN: ${BANK_DETAILS.iban}`, margin + 3, yPos)
     yPos += 4
-    doc.text(`    SWIFT/BIC: ${BANK_DETAILS.swift}`, margin + 3, yPos)
+    doc.text(`    BIC: ${BANK_DETAILS.bic}`, margin + 3, yPos)
     yPos += 4
     doc.text(`    Bank: ${BANK_DETAILS.bank}`, margin + 3, yPos)
+    yPos += 5
+  }
+
+  if (data.paymentMethods.other) {
+    doc.text("• Other payment methods", margin + 3, yPos)
     yPos += 5
   }
 

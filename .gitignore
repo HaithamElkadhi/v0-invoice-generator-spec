@@ -1,0 +1,29 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build
+.next
+out
+build
+dist
+.turbo
+.vercel
+*.tsbuildinfo
+
+# Env files (keep secrets out of git)
+.env
+.env.local
+.env*.local
+
+# Lockfiles (use one package manager; you have pnpm-lock.yaml)
+package-lock.json
+yarn.lock
+bun.lockb
+
+# Misc
+.DS_Store
+*.pem
+Thumbs.db
+*.log

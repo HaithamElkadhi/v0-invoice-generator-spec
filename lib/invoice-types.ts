@@ -7,8 +7,8 @@ export interface InvoiceItem {
 
 export interface PaymentMethodsSelection {
   paypal: boolean
-  cash: boolean
   bankTransfer: boolean
+  other: boolean
 }
 
 export interface InvoiceData {
@@ -32,16 +32,20 @@ export interface InvoiceDataWithTotals extends InvoiceData {
 
 export const COMPANY_INFO = {
   name: "Jeexpert",
-  email: "study@jeexpert.com",
+  email: "contact@jeexpert-study.com",
   phone: "+39 352 088 0880",
   website: "www.jeexpert-study.com",
   logoUrl: "/images/jeexpert-20logo-20inversed.png",
 } as const
 
+export const PAYPAL_EMAIL = "contact@jeexpert-study.com" as const
+
 export const BANK_DETAILS = {
-  iban: "IT66B0501803400000017104738",
-  swift: "ETICIT22009",
-  bank: "Banca Popolare Etica - Napoli",
+  accountHolder: "Haitham ELKADHI",
+  codiceFiscale: "LKDHHM94E25Z352S",
+  iban: "IT70 Y030 6915 2241 0000 0008 290",
+  bic: "BCITITMM",
+  bank: "Intesa Sanpaolo",
 } as const
 
 export const BRAND_COLORS = {

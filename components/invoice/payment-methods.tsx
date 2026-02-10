@@ -2,7 +2,7 @@
 
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import { BANK_DETAILS, COMPANY_INFO } from "@/lib/invoice-types"
+import { BANK_DETAILS, PAYPAL_EMAIL } from "@/lib/invoice-types"
 import type { InvoiceData } from "@/lib/invoice-types"
 
 interface PaymentMethodsProps {
@@ -36,22 +36,7 @@ export function PaymentMethods({ data, onChange }: PaymentMethodsProps) {
             <Label htmlFor="paypal" className="cursor-pointer font-medium">
               PayPal
             </Label>
-            <p className="text-sm text-muted-foreground">{COMPANY_INFO.email}</p>
-          </div>
-        </div>
-
-        {/* Cash */}
-        <div className="flex items-start space-x-3 rounded-lg border border-border p-4">
-          <Checkbox
-            id="cash"
-            checked={data.paymentMethods.cash}
-            onCheckedChange={(checked) => updatePaymentMethod("cash", checked === true)}
-          />
-          <div className="space-y-1">
-            <Label htmlFor="cash" className="cursor-pointer font-medium">
-              Cash
-            </Label>
-            <p className="text-sm text-muted-foreground">Cash payment accepted</p>
+            <p className="text-sm text-muted-foreground">{PAYPAL_EMAIL}</p>
           </div>
         </div>
 
@@ -67,10 +52,27 @@ export function PaymentMethods({ data, onChange }: PaymentMethodsProps) {
               Bank Transfer
             </Label>
             <div className="text-sm text-muted-foreground space-y-0.5">
+              <p>{BANK_DETAILS.accountHolder}</p>
+              <p>Codice Fiscale: {BANK_DETAILS.codiceFiscale}</p>
               <p>IBAN: {BANK_DETAILS.iban}</p>
-              <p>SWIFT/BIC: {BANK_DETAILS.swift}</p>
+              <p>BIC: {BANK_DETAILS.bic}</p>
               <p>Bank: {BANK_DETAILS.bank}</p>
             </div>
+          </div>
+        </div>
+
+        {/* Other */}
+        <div className="flex items-start space-x-3 rounded-lg border border-border p-4">
+          <Checkbox
+            id="other"
+            checked={data.paymentMethods.other}
+            onCheckedChange={(checked) => updatePaymentMethod("other", checked === true)}
+          />
+          <div className="space-y-1">
+            <Label htmlFor="other" className="cursor-pointer font-medium">
+              Other
+            </Label>
+            <p className="text-sm text-muted-foreground">Other payment methods</p>
           </div>
         </div>
       </div>

@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react"
 import Link from "next/link"
-import { ArrowLeft, Download } from "lucide-react"
+import { ArrowLeft, Download, Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { InvoiceHeader } from "@/components/invoice/invoice-header"
 import { ClientInfo } from "@/components/invoice/client-info"
@@ -33,12 +33,13 @@ export default function InvoicePage() {
     discountReason: "",
     paymentMethods: {
       paypal: false,
-      cash: false,
       bankTransfer: false,
+      other: false,
     },
   })
 
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
 
   const updateInvoiceData = useCallback((updates: Partial<InvoiceData>) => {
     setInvoiceData((prev) => ({ ...prev, ...updates }))
@@ -82,6 +83,48 @@ export default function InvoicePage() {
     }
   }
 
+  const handleSaveToAirtable = async () => {
+    if (!invoiceData.clientName.trim()) {
+      alert("Please enter a client name")
+      return
+    }
+
+    if (!Object.values(invoiceData.paymentMethods).some(Boolean)) {
+      alert("Please select at least one payment method")
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      const res = await fetch("/api/invoice/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: invoiceData.date,
+          dueDate: invoiceData.dueDate,
+          clientName: invoiceData.clientName,
+          clientAddress: invoiceData.clientAddress,
+          finalTotal,
+          paymentMethods: invoiceData.paymentMethods,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        alert(data.error || "Failed to save")
+        return
+      }
+
+      alert("Invoice saved to Airtable successfully!")
+    } catch (error) {
+      console.error("Save to Airtable failed:", error)
+      alert(error instanceof Error ? error.message : "Failed to save. Please try again.")
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -103,14 +146,25 @@ export default function InvoicePage() {
                 </div>
               </div>
             </div>
-            <Button
-              onClick={handleGeneratePDF}
-              disabled={isGenerating}
-              className="bg-[rgb(41,84,144)] hover:bg-[rgb(61,104,164)] text-white"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              {isGenerating ? "Generating..." : "Download PDF"}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handleSaveToAirtable}
+                disabled={isSaving}
+                variant="outline"
+                className="border-[rgb(41,84,144)] text-[rgb(41,84,144)] hover:bg-[rgb(41,84,144)]/10"
+              >
+                <Save className="mr-2 h-4 w-4" />
+                {isSaving ? "Saving..." : "Save"}
+              </Button>
+              <Button
+                onClick={handleGeneratePDF}
+                disabled={isGenerating}
+                className="bg-[rgb(41,84,144)] hover:bg-[rgb(61,104,164)] text-white"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                {isGenerating ? "Generating..." : "Download PDF"}
+              </Button>
+            </div>
           </div>
         </div>
       </header>
