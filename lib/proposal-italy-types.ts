@@ -1,52 +1,32 @@
-export interface SpokenLanguage {
-  language: string
-  level: "A1" | "A2" | "B1" | "B2" | "C1" | "C2"
-}
-
-export interface ClientProfile {
-  lastDiploma: string
-  diplomaYear: string
-  fieldOfStudy: string
-  notes: string
-  spokenLanguages: SpokenLanguage[]
+export interface StudentProfile {
+  currentStatus: string
+  highestDegreeObtained: string
+  fieldOfPreviousStudies: string
+  yearOfGraduation: string
+  currentOccupation: string
+  englishLevel: string
+  englishCertificate: string
+  otherLanguages: string[]
+  note: string
 }
 
 export interface StudyPreferences {
-  entryLevel: string
-  academicYear: string
-  fieldsOfStudy: string
-  specificInterests: string
-  cityRegionTypes: string[]
-  budgetIndication: string
-  otherConstraints: string
+  country: string
+  targetDegreeLevel: string
+  intendedIntake: string
+  fieldOfStudyPrimary: string
+  alternativeField: string
+  specificDetailsFieldOfStudy: string
+  englishTaughtOnly: string
+  scholarshipDependent: string
+  canPayApplicationFees: string
+  scholarshipStrategy: string[]
+  cityPreferenceType: string
 }
 
-export interface UniversityProposal {
-  id: string
-  universityName: string
-  courseName: string
-  courseLink: string
-  applicationFees: number
-  notes: string
-}
-
-export interface FinancialSummaryData {
-  estimatedUniversityFees: string // Text input - allows "50 € per application" or "Varies by university"
-  jeexpertUpfrontFee: number // Default 100
-  jeexpertAdditionalFee: number // Default 200
-  additionalFinancialNotes: string // Optional textarea
-}
-
-export interface TermsConditions {
-  paymentCommitment: string
-  nonRefundableFees: string
-  personalDataDelegation: string
-  additionalTerms: string
-}
-
-export interface SignatureSection {
-  consultantName: string
-  studentSignaturePlaceholder: string
+export interface Services {
+  selected: string[]
+  note: string
 }
 
 export interface ProposalItalyData {
@@ -58,10 +38,7 @@ export interface ProposalItalyData {
   email: string
   phone: string
   nationality: string
-  clientProfile: ClientProfile
+  studentProfile: StudentProfile
   studyPreferences: StudyPreferences
-  universityProposals: UniversityProposal[]
-  financialSummary: FinancialSummaryData
-  termsConditions: TermsConditions
-  consultantName: string
+  services: Services
 }

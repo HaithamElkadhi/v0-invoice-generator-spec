@@ -27,6 +27,19 @@ export function ClientInfo({ data, onChange }: ClientInfoProps) {
       </div>
 
       <div className="space-y-2">
+        <Label htmlFor="clientEmail">
+          Client Email <span className="text-[rgb(220,53,69)]">*</span>
+        </Label>
+        <Input
+          id="clientEmail"
+          type="email"
+          placeholder="student@example.com"
+          value={data.clientEmail}
+          onChange={(e) => onChange({ clientEmail: e.target.value })}
+        />
+      </div>
+
+      <div className="space-y-2 sm:col-span-2">
         <Label htmlFor="clientAddress">Client Address</Label>
         <Textarea
           id="clientAddress"

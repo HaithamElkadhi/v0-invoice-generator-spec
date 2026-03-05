@@ -16,6 +16,7 @@ export interface InvoiceData {
   date: string
   dueDate: string
   clientName: string
+  clientEmail: string
   clientAddress: string
   items: InvoiceItem[]
   discountEnabled: boolean
@@ -30,12 +31,14 @@ export interface InvoiceDataWithTotals extends InvoiceData {
   finalTotal: number
 }
 
+import { getPictureUrl, PICTURE_LABELS } from "./pictures"
+
 export const COMPANY_INFO = {
   name: "Jeexpert",
   email: "contact@jeexpert-study.com",
   phone: "+39 352 088 0880",
   website: "www.jeexpert-study.com",
-  logoUrl: "/images/jeexpert-20logo-20inversed.png",
+  logoUrl: getPictureUrl(PICTURE_LABELS.LogoApp),
 } as const
 
 export const PAYPAL_EMAIL = "contact@jeexpert-study.com" as const

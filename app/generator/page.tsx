@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { FileText, FileSpreadsheet, ArrowLeft } from "lucide-react"
+import { getPictureUrl, PICTURE_LABELS } from "@/lib/pictures"
 
 export default function GeneratorPage() {
   return (
@@ -8,7 +9,7 @@ export default function GeneratorPage() {
       <header className="border-b border-border bg-card">
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
-            <img src="/images/jeexpert-20logo-20inversed.png" alt="Jeexpert Logo" className="h-10 w-10" />
+            <img src={getPictureUrl(PICTURE_LABELS.LogoApp)} alt="Jeexpert Logo" className="h-10 w-10" />
             <div>
               <h1 className="text-xl font-bold text-[rgb(41,84,144)]">JEEXPERT ERP Light</h1>
               <p className="text-sm text-muted-foreground">Your Academic Journey Abroad Starts Here</p>

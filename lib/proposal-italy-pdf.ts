@@ -19,10 +19,6 @@ export async function generateProposalItalyPDF(data: ProposalItalyData): Promise
     return date.toLocaleDateString("en-GB")
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-EU", { style: "currency", currency: "EUR" }).format(amount)
-  }
-
   const checkPageBreak = (requiredSpace: number) => {
     if (y + requiredSpace > pageHeight - 25) {
       doc.addPage()
@@ -93,278 +89,132 @@ export async function generateProposalItalyPDF(data: ProposalItalyData): Promise
   const s2 = Math.max(drawField("Phone", data.phone, 0), drawField("Nationality", data.nationality, contentWidth / 2))
   y += s2 + 4
 
-  // Section 3: Client Profile
-  drawSectionTitle("3. CLIENT PROFILE")
+  // Section 3: Student Profile
+  drawSectionTitle("3. STUDENT PROFILE")
+  const spro = data.studentProfile
   const cp1 = Math.max(
-    drawField("Last Diploma", data.clientProfile.lastDiploma, 0),
-    drawField("Year", data.clientProfile.diplomaYear, contentWidth / 2),
+    drawField("Current Status", spro.currentStatus || "-", 0),
+    drawField("Highest Degree Obtained", spro.highestDegreeObtained || "-", contentWidth / 2),
   )
   y += cp1 + 2
-  const cp2 = drawField("Field of Study", data.clientProfile.fieldOfStudy, 0, contentWidth)
+  const cp2 = Math.max(
+    drawField("Field of Previous Studies", spro.fieldOfPreviousStudies || "-", 0),
+    drawField("Year of Graduation", spro.yearOfGraduation || "-", contentWidth / 2),
+  )
   y += cp2 + 2
-  if (data.clientProfile.notes) {
-    const cp3 = drawField("Notes", data.clientProfile.notes, 0, contentWidth)
-    y += cp3 + 2
-  }
-
-  // Languages table
-  if (data.clientProfile.spokenLanguages.length > 0) {
-    checkPageBreak(20)
-    doc.setFontSize(9)
-    doc.setFont("helvetica", "bold")
-    doc.setTextColor(...grayColor)
-    doc.text("Spoken Languages:", margin, y)
-    y += 5
-    const langColWidth = 50
-    doc.setFillColor(...brandColor)
-    doc.rect(margin, y, langColWidth, 6, "F")
-    doc.rect(margin + langColWidth, y, 30, 6, "F")
-    doc.setTextColor(255, 255, 255)
-    doc.setFontSize(8)
-    doc.text("Language", margin + 2, y + 4)
-    doc.text("Level", margin + langColWidth + 2, y + 4)
-    y += 6
-    data.clientProfile.spokenLanguages.forEach((lang, i) => {
-      const bgColor = i % 2 === 0 ? lightGray : ([255, 255, 255] as [number, number, number])
-      doc.setFillColor(...bgColor)
-      doc.rect(margin, y, langColWidth, 5, "F")
-      doc.rect(margin + langColWidth, y, 30, 5, "F")
-      doc.setTextColor(0, 0, 0)
-      doc.text(lang.language, margin + 2, y + 3.5)
-      doc.text(lang.level, margin + langColWidth + 2, y + 3.5)
-      y += 5
-    })
-    y += 4
-  }
+  const cp3 = Math.max(
+    drawField("Current Occupation", spro.currentOccupation || "-", 0),
+    drawField("English Level", spro.englishLevel || "-", contentWidth / 2),
+  )
+  y += cp3 + 2
+  const cp4 = Math.max(
+    drawField("English Certificate", spro.englishCertificate || "-", 0),
+    drawField("Other Languages", spro.otherLanguages?.length ? spro.otherLanguages.join(", ") : "-", contentWidth / 2),
+  )
+  y += cp4 + 2
+  const cp5 = drawField("Note", spro.note || "-", 0, contentWidth)
+  y += cp5 + 4
 
   // Section 4: Study Preferences
   drawSectionTitle("4. STUDY PREFERENCES")
+  const sp = data.studyPreferences
+  const degreeLabels: Record<string, string> = {
+    bachelor: "Bachelor (Laurea Triennale)",
+    master: "Master (Laurea Magistrale – 2 years)",
+    "master-1y": "1-year Master (Master I livello)",
+  }
+  const englishLabels: Record<string, string> = {
+    english_only: "English only",
+    english_preferred: "English preferred but open to Italian",
+    italian_acceptable: "Italian acceptable",
+  }
+  const scholarshipDepLabels: Record<string, string> = {
+    yes_cannot_proceed: "Yes – without scholarship I cannot proceed",
+    prefer_partial: "Prefer scholarship but can manage partially",
+    no: "No",
+  }
+  const appFeesLabels: Record<string, string> = {
+    yes: "Yes",
+    case_by_case: "Case by case",
+    no: "No",
+  }
+  const cityLabels: Record<string, string> = {
+    large_international: "Large international city",
+    student_city: "Student city",
+    affordable_south: "Affordable southern region",
+    no_preference: "No preference (best admission chance)",
+  }
+
   const sp1 = Math.max(
-    drawField("Entry Level", data.studyPreferences.entryLevel, 0),
-    drawField("Academic Year", data.studyPreferences.academicYear, contentWidth / 2),
+    drawField("Country", sp.country || "-", 0),
+    drawField("Intended Intake", sp.intendedIntake || "-", contentWidth / 2),
   )
   y += sp1 + 2
-  const sp2 = drawField("Fields of Study", data.studyPreferences.fieldsOfStudy, 0, contentWidth)
+  const targetDegreeLabel =
+    sp.country === "Italy" && sp.targetDegreeLevel
+      ? degreeLabels[sp.targetDegreeLevel] || sp.targetDegreeLevel
+      : "-"
+  const sp2 = drawField("Target Degree Level", targetDegreeLabel, 0, contentWidth)
   y += sp2 + 2
-  if (data.studyPreferences.specificInterests) {
-    const sp3 = drawField("Specific Interests", data.studyPreferences.specificInterests, 0, contentWidth)
-    y += sp3 + 2
-  }
-  if (data.studyPreferences.cityRegionTypes.length > 0) {
-    const sp4 = drawField("Preferred Regions", data.studyPreferences.cityRegionTypes.join(", "), 0, contentWidth)
-    y += sp4 + 2
-  }
-  const sp5 = Math.max(
-    drawField("Budget", data.studyPreferences.budgetIndication, 0),
-    drawField("Other Constraints", data.studyPreferences.otherConstraints, contentWidth / 2),
+  const sp3 = drawField("Field of Study (Primary)", sp.fieldOfStudyPrimary || "-", 0, contentWidth)
+  y += sp3 + 2
+  const sp4 = drawField("Alternative Field", sp.alternativeField || "-", 0, contentWidth)
+  y += sp4 + 2
+  const sp5 = drawField(
+    "Specific Details About Field of Study",
+    sp.specificDetailsFieldOfStudy || "-",
+    0,
+    contentWidth
   )
-  y += sp5 + 4
+  y += sp5 + 2
+  const sp6 = drawField(
+    "English-taught programs",
+    sp.englishTaughtOnly ? englishLabels[sp.englishTaughtOnly] || sp.englishTaughtOnly : "-",
+    0,
+    contentWidth
+  )
+  y += sp6 + 2
+  const sp7 = drawField(
+    "Dependent on scholarship",
+    sp.scholarshipDependent ? scholarshipDepLabels[sp.scholarshipDependent] || sp.scholarshipDependent : "-",
+    0,
+    contentWidth
+  )
+  y += sp7 + 2
+  const sp8 = drawField(
+    "Can pay application fees",
+    sp.canPayApplicationFees ? appFeesLabels[sp.canPayApplicationFees] || sp.canPayApplicationFees : "-",
+    0,
+    contentWidth
+  )
+  y += sp8 + 2
+  const sp9 = drawField(
+    "Scholarship & Regional Strategy",
+    sp.scholarshipStrategy?.length ? sp.scholarshipStrategy.join(", ") : "-",
+    0,
+    contentWidth
+  )
+  y += sp9 + 2
+  const sp10 = drawField(
+    "City Preference Type",
+    sp.cityPreferenceType ? cityLabels[sp.cityPreferenceType] || sp.cityPreferenceType : "-",
+    0,
+    contentWidth
+  )
+  y += sp10 + 4
 
-  // Section 5: University Proposals
-  drawSectionTitle("5. UNIVERSITY PROPOSALS")
-  if (data.universityProposals.length > 0) {
-    const colWidths = [8, 40, 50, 15, 27, 30]
-    const headers = ["#", "University", "Course", "Link", "Notes", "App Fees"]
-
-    checkPageBreak(30)
-    doc.setFillColor(...brandColor)
-    doc.rect(margin, y, contentWidth, 7, "F")
-    doc.setTextColor(255, 255, 255)
-    doc.setFontSize(7)
-    doc.setFont("helvetica", "bold")
-
-    let xPos = margin
-    headers.forEach((header, i) => {
-      doc.text(header, xPos + 2, y + 5)
-      xPos += colWidths[i]
-    })
-    y += 7
-
-    data.universityProposals.forEach((proposal, index) => {
-      checkPageBreak(8)
-      const bgColor = index % 2 === 0 ? lightGray : ([255, 255, 255] as [number, number, number])
-      doc.setFillColor(...bgColor)
-      doc.rect(margin, y, contentWidth, 7, "F")
-      doc.setTextColor(0, 0, 0)
-      doc.setFont("helvetica", "normal")
-      doc.setFontSize(7)
-
-      const noteText = proposal.notes || "-"
-      const noteLines = doc.splitTextToSize(noteText, colWidths[4] - 2)
-      const rowHeight = Math.max(7, noteLines.length * 4 + 1)
-
-      doc.setFillColor(...bgColor)
-      doc.rect(margin, y, contentWidth, rowHeight, "F")
-      doc.setTextColor(0, 0, 0)
-
-      const rowData = [
-        (index + 1).toString(),
-        proposal.universityName.substring(0, 18),
-        proposal.courseName.substring(0, 20),
-        proposal.courseLink ? "Link" : "-", // replaced emoji with text "Link"
-        "", // notes will be handled separately with wrapping
-        formatCurrency(proposal.applicationFees),
-      ]
-
-      xPos = margin
-      const col0X = margin
-      const col1X = col0X + colWidths[0]
-      const col2X = col1X + colWidths[1]
-      const col3X = col2X + colWidths[2]
-      const col4X = col3X + colWidths[3]
-      const col5X = col4X + colWidths[4]
-
-      // Column 0: #
-      doc.text(rowData[0], col0X + 2, y + 4)
-
-      // Column 1: University
-      const uni = doc.splitTextToSize(rowData[1], colWidths[1] - 2)
-      doc.text(uni[0] || "", col1X + 2, y + 4)
-
-      // Column 2: Course
-      const course = doc.splitTextToSize(rowData[2], colWidths[2] - 2)
-      doc.text(course[0] || "", col2X + 2, y + 4)
-
-      // Column 3: Link
-      if (proposal.courseLink) {
-        doc.setTextColor(...brandColor)
-        doc.setFont("helvetica", "normal")
-        doc.textWithLink("Link", col3X + 2, y + 4, {
-          url: proposal.courseLink.startsWith("http") ? proposal.courseLink : `https://${proposal.courseLink}`,
-        })
-        doc.setTextColor(0, 0, 0)
-      } else {
-        doc.text("-", col3X + 2, y + 4)
-      }
-
-      // Column 4: Notes (with wrapping)
-      noteLines.forEach((line: string, lineIndex: number) => {
-        doc.text(line, col4X + 2, y + 4 + lineIndex * 4)
-      })
-
-      // Column 5: App Fees (right-aligned)
-      doc.text(rowData[5], col5X + colWidths[5] - 2, y + 4, { align: "right" })
-
-      y += rowHeight
-    })
-    y += 4
-  } else {
-    doc.setFontSize(9)
-    doc.setTextColor(...grayColor)
-    doc.text("No universities added.", margin, y)
-    y += 8
-  }
-
-  drawSectionTitle("6. FINANCIAL SUMMARY")
-  checkPageBreak(40)
-
-  doc.setFontSize(10)
-
-  // Estimated University/Application Fees
-  doc.setFont("helvetica", "bold")
-  doc.setTextColor(0, 0, 0)
-  doc.text("Estimated university/application fees:", margin, y)
-  doc.setFont("helvetica", "normal")
-  const estFees = data.financialSummary.estimatedUniversityFees || "—"
-  doc.text(estFees, margin, y + 5)
-  y += 12
-
-  // Jeexpert Upfront Admission Fee
-  doc.setFont("helvetica", "bold")
-  doc.text("Jeexpert upfront admission fee (non-refundable):", margin, y)
-  doc.setFont("helvetica", "normal")
-  doc.text(`${data.financialSummary.jeexpertUpfrontFee} €`, margin, y + 5)
-  y += 12
-
-  // Jeexpert Additional Fee Upon Acceptance
-  doc.setFont("helvetica", "bold")
-  doc.text("Jeexpert service fee upon acceptance:", margin, y)
-  doc.setFont("helvetica", "normal")
-  doc.text(`${data.financialSummary.jeexpertAdditionalFee} €`, margin, y + 5)
-  y += 12
-
-  // Additional Financial Notes (only if not empty)
-  if (data.financialSummary.additionalFinancialNotes && data.financialSummary.additionalFinancialNotes.trim()) {
-    doc.setFont("helvetica", "bold")
-    doc.text("Additional financial notes:", margin, y)
-    y += 5
-    doc.setFont("helvetica", "normal")
-    const noteLines = doc.splitTextToSize(data.financialSummary.additionalFinancialNotes, 170)
-    noteLines.forEach((line: string) => {
-      checkPageBreak(5)
-      doc.text(line, margin, y)
-      y += 4
-    })
-    y += 4
-  }
-
-  y += 4
-
-  // Section 7: Terms & Conditions
-  const hasTerms =
-    data.termsConditions.paymentCommitment ||
-    data.termsConditions.nonRefundableFees ||
-    data.termsConditions.personalDataDelegation ||
-    data.termsConditions.additionalTerms
-
-  if (hasTerms) {
-    drawSectionTitle("7. TERMS & CONDITIONS")
-    doc.setFontSize(9)
-
-    let clauseNumber = 1
-    const clauses = [
-      { title: "Payment Commitment", content: data.termsConditions.paymentCommitment },
-      { title: "Non-Refundable Fees", content: data.termsConditions.nonRefundableFees },
-      { title: "Personal Data & Delegation", content: data.termsConditions.personalDataDelegation },
-      { title: "Additional Terms", content: data.termsConditions.additionalTerms },
-    ]
-
-    clauses.forEach((clause) => {
-      if (clause.content && clause.content.trim()) {
-        checkPageBreak(15)
-        doc.setFont("helvetica", "bold")
-        doc.setTextColor(0, 0, 0)
-        doc.text(`${clauseNumber}. ${clause.title}`, margin, y)
-        y += 5
-        doc.setFont("helvetica", "normal")
-        const lines = doc.splitTextToSize(clause.content, contentWidth - 5)
-        lines.forEach((line: string) => {
-          checkPageBreak(5)
-          doc.text(line, margin, y)
-          y += 4
-        })
-        y += 3
-        clauseNumber++
-      }
-    })
-    y += 4
-  }
-
-  // Section 8: Signatures
-  checkPageBreak(45)
-  drawSectionTitle("8. SIGNATURES")
-  doc.setFontSize(9)
-  doc.setFont("helvetica", "normal")
-
-  const sigWidth = (contentWidth - 10) / 2
-  doc.text("Consultant:", margin, y)
-  doc.text("Student:", margin + sigWidth + 10, y)
-  y += 5
-  doc.setFont("helvetica", "bold")
-  doc.text(data.consultantName || "________________", margin, y)
-  doc.text("________________", margin + sigWidth + 10, y)
-  y += 8
-  doc.setDrawColor(...grayColor)
-  doc.line(margin, y, margin + sigWidth, y)
-  doc.line(margin + sigWidth + 10, y, margin + contentWidth, y)
-  y += 5
-  doc.setFont("helvetica", "normal")
-  doc.setFontSize(8)
-  doc.text("Signature", margin, y)
-  doc.text("Signature", margin + sigWidth + 10, y)
-  y += 8
-  doc.text("Date: _______________", margin, y)
-  doc.text("Date: _______________", margin + sigWidth + 10, y)
+  // Section 5: Services
+  drawSectionTitle("5. SERVICES")
+  const svc = data.services
+  const svc1 = drawField(
+    "Services selected",
+    svc?.selected?.length ? svc.selected.join(", ") : "-",
+    0,
+    contentWidth
+  )
+  y += svc1 + 2
+  const svc2 = drawField("Note", svc?.note?.trim() || "-", 0, contentWidth)
+  y += svc2 + 4
 
   // Footer
   const drawFooter = () => {

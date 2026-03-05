@@ -12,108 +12,277 @@ interface StudyPreferencesProps {
   onChange: (data: StudyPreferences) => void
 }
 
-const ENTRY_LEVELS = ["Bachelor", "Master", "PhD", "Language Course", "Foundation Year", "Other"]
-const CITY_REGION_TYPES = [
-  "Large City",
-  "Medium City",
-  "Small Town",
-  "Northern Italy",
-  "Central Italy",
-  "Southern Italy",
-]
+const COUNTRIES = [
+  { value: "Italy", label: "Italy" },
+  { value: "France", label: "France" },
+] as const
+
+const DEGREE_LEVELS_ITALY = [
+  { value: "bachelor", label: "Bachelor (Laurea Triennale)" },
+  { value: "master", label: "Master (Laurea Magistrale – 2 years)" },
+  { value: "master-1y", label: "1-year Master (Master I livello)" },
+] as const
+
+const INTAKES = [
+  { value: "2026/2027", label: "2026/2027" },
+  { value: "2027/2028", label: "2027/2028" },
+  { value: "Flexible", label: "Flexible" },
+] as const
+
+const ENGLISH_OPTIONS = [
+  { value: "english_only", label: "English only" },
+  { value: "english_preferred", label: "English preferred but open to Italian" },
+  { value: "italian_acceptable", label: "Italian acceptable" },
+] as const
+
+const SCHOLARSHIP_DEPENDENT_OPTIONS = [
+  { value: "yes_cannot_proceed", label: "Yes – without scholarship I cannot proceed" },
+  { value: "prefer_partial", label: "Prefer scholarship but can manage partially" },
+  { value: "no", label: "No" },
+] as const
+
+const APPLICATION_FEES_OPTIONS = [
+  { value: "yes", label: "Yes" },
+  { value: "case_by_case", label: "Case by case" },
+  { value: "no", label: "No" },
+] as const
+
+const SCHOLARSHIP_STRATEGY_OPTIONS = [
+  "DSU Regional Scholarship",
+  "MAECI Scholarship",
+  "Both",
+  "Not sure",
+] as const
+
+const CITY_PREFERENCE_OPTIONS = [
+  { value: "large_international", label: "Large international city" },
+  { value: "student_city", label: "Student city" },
+  { value: "affordable_south", label: "Affordable southern region" },
+  { value: "no_preference", label: "No preference (best admission chance)" },
+] as const
+
+function RadioGroup({
+  name,
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  name: string
+  label: string
+  options: readonly { value: string; label: string }[]
+  value: string
+  onChange: (value: string) => void
+}) {
+  return (
+    <div className="space-y-3">
+      <Label>{label}</Label>
+      <div className="flex flex-col gap-2 rounded-md border border-border bg-muted/30 px-3 py-2">
+        {options.map((opt) => (
+          <label
+            key={opt.value}
+            className="flex cursor-pointer items-center gap-3 text-sm"
+          >
+            <input
+              type="radio"
+              name={name}
+              value={opt.value}
+              checked={value === opt.value}
+              onChange={() => onChange(opt.value)}
+              className="h-4 w-4 border-border text-[rgb(41,84,144)] focus:ring-[rgb(41,84,144)]"
+            />
+            <span>{opt.label}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export function StudyPreferencesSection({ data, onChange }: StudyPreferencesProps) {
-  const toggleCityRegion = (type: string) => {
-    const current = data.cityRegionTypes || []
-    const updated = current.includes(type) ? current.filter((t) => t !== type) : [...current, type]
-    onChange({ ...data, cityRegionTypes: updated })
+  const isItaly = data.country === "Italy"
+
+  const toggleScholarshipStrategy = (option: string) => {
+    const current = data.scholarshipStrategy || []
+    const updated = current.includes(option)
+      ? current.filter((s) => s !== option)
+      : [...current, option]
+    onChange({ ...data, scholarshipStrategy: updated })
   }
 
   return (
     <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
-      <h2 className="mb-4 text-lg font-semibold text-[rgb(41,84,144)]">4. Study Preferences</h2>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="entryLevel">Entry Level</Label>
-          <Select value={data.entryLevel} onValueChange={(value) => onChange({ ...data, entryLevel: value })}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select level" />
-            </SelectTrigger>
-            <SelectContent>
-              {ENTRY_LEVELS.map((level) => (
-                <SelectItem key={level} value={level}>
-                  {level}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="academicYear">Academic Year</Label>
-          <Input
-            id="academicYear"
-            placeholder="e.g., 2024/2025"
-            value={data.academicYear}
-            onChange={(e) => onChange({ ...data, academicYear: e.target.value })}
-          />
-        </div>
-        <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="fieldsOfStudy">Fields of Study</Label>
-          <Input
-            id="fieldsOfStudy"
-            placeholder="e.g., Engineering, Medicine, Business"
-            value={data.fieldsOfStudy}
-            onChange={(e) => onChange({ ...data, fieldsOfStudy: e.target.value })}
-          />
-        </div>
-        <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="specificInterests">Specific Interests</Label>
-          <Textarea
-            id="specificInterests"
-            placeholder="Any specific programs, universities, or interests..."
-            value={data.specificInterests}
-            onChange={(e) => onChange({ ...data, specificInterests: e.target.value })}
-            rows={2}
-          />
+      <h2 className="mb-6 text-lg font-semibold text-[rgb(41,84,144)]">
+        4. Study Preferences
+      </h2>
+
+      <div className="space-y-8">
+        {/* Country & degree & intake */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label>Country</Label>
+            <Select
+              value={data.country || ""}
+              onValueChange={(value) => onChange({ ...data, country: value })}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select country" />
+              </SelectTrigger>
+              <SelectContent>
+                {COUNTRIES.map((c) => (
+                  <SelectItem key={c.value} value={c.value}>
+                    {c.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {isItaly && (
+            <div className="space-y-2">
+              <Label>Target Degree Level</Label>
+              <Select
+                value={data.targetDegreeLevel || ""}
+                onValueChange={(value) =>
+                  onChange({ ...data, targetDegreeLevel: value })
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select degree level" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DEGREE_LEVELS_ITALY.map((d) => (
+                    <SelectItem key={d.value} value={d.value}>
+                      {d.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label>Intended Intake</Label>
+            <Select
+              value={data.intendedIntake || ""}
+              onValueChange={(value) =>
+                onChange({ ...data, intendedIntake: value })
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select intake" />
+              </SelectTrigger>
+              <SelectContent>
+                {INTAKES.map((i) => (
+                  <SelectItem key={i.value} value={i.value}>
+                    {i.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        {/* City/Region Preferences */}
-        <div className="space-y-3 sm:col-span-2">
-          <Label>Preferred City/Region Types</Label>
-          <div className="flex flex-wrap gap-4">
-            {CITY_REGION_TYPES.map((type) => (
-              <div key={type} className="flex items-center space-x-2">
+        {/* Field of study */}
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="fieldOfStudyPrimary">Field of Study (Primary)</Label>
+            <Input
+              id="fieldOfStudyPrimary"
+              placeholder="e.g. Engineering, Economics, Medicine"
+              value={data.fieldOfStudyPrimary}
+              onChange={(e) =>
+                onChange({ ...data, fieldOfStudyPrimary: e.target.value })
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="alternativeField">
+              Alternative Field <span className="text-muted-foreground">(Optional)</span>
+            </Label>
+            <Input
+              id="alternativeField"
+              placeholder="e.g. Data Science, International Relations"
+              value={data.alternativeField}
+              onChange={(e) =>
+                onChange({ ...data, alternativeField: e.target.value })
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="specificDetailsFieldOfStudy">
+              Specific Details About Field of Study
+            </Label>
+            <Textarea
+              id="specificDetailsFieldOfStudy"
+              placeholder="Any specific programs, specializations, or interests..."
+              value={data.specificDetailsFieldOfStudy}
+              onChange={(e) =>
+                onChange({ ...data, specificDetailsFieldOfStudy: e.target.value })
+              }
+              rows={4}
+              className="resize-y"
+            />
+          </div>
+        </div>
+
+        {/* English-taught */}
+        <RadioGroup
+          name="englishTaughtOnly"
+          label="Do you require English-taught programs only?"
+          options={ENGLISH_OPTIONS}
+          value={data.englishTaughtOnly}
+          onChange={(value) => onChange({ ...data, englishTaughtOnly: value })}
+        />
+
+        {/* Scholarship dependency */}
+        <RadioGroup
+          name="scholarshipDependent"
+          label="Are you dependent on scholarship to study?"
+          options={SCHOLARSHIP_DEPENDENT_OPTIONS}
+          value={data.scholarshipDependent}
+          onChange={(value) => onChange({ ...data, scholarshipDependent: value })}
+        />
+
+        {/* Application fees */}
+        <RadioGroup
+          name="canPayApplicationFees"
+          label="Can you pay application fees (30–100€ per university)?"
+          options={APPLICATION_FEES_OPTIONS}
+          value={data.canPayApplicationFees}
+          onChange={(value) => onChange({ ...data, canPayApplicationFees: value })}
+        />
+
+        {/* Scholarship & Regional Strategy (checkboxes) */}
+        <div className="space-y-3">
+          <Label>Scholarship & Regional Strategy</Label>
+          <p className="text-muted-foreground text-sm">
+            Select all that apply
+          </p>
+          <div className="flex flex-wrap gap-6 rounded-md border border-border bg-muted/30 px-3 py-3">
+            {SCHOLARSHIP_STRATEGY_OPTIONS.map((option) => (
+              <label
+                key={option}
+                className="flex cursor-pointer items-center gap-2 text-sm"
+              >
                 <Checkbox
-                  id={type}
-                  checked={(data.cityRegionTypes || []).includes(type)}
-                  onCheckedChange={() => toggleCityRegion(type)}
+                  checked={(data.scholarshipStrategy || []).includes(option)}
+                  onCheckedChange={() => toggleScholarshipStrategy(option)}
                 />
-                <label htmlFor={type} className="text-sm">
-                  {type}
-                </label>
-              </div>
+                <span>{option}</span>
+              </label>
             ))}
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="budgetIndication">Budget Indication</Label>
-          <Input
-            id="budgetIndication"
-            placeholder="e.g., 5000-10000 EUR/year"
-            value={data.budgetIndication}
-            onChange={(e) => onChange({ ...data, budgetIndication: e.target.value })}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="otherConstraints">Other Constraints</Label>
-          <Input
-            id="otherConstraints"
-            placeholder="e.g., Must have English-taught programs"
-            value={data.otherConstraints}
-            onChange={(e) => onChange({ ...data, otherConstraints: e.target.value })}
-          />
-        </div>
+        {/* City preference */}
+        <RadioGroup
+          name="cityPreferenceType"
+          label="City Preference Type"
+          options={CITY_PREFERENCE_OPTIONS}
+          value={data.cityPreferenceType}
+          onChange={(value) => onChange({ ...data, cityPreferenceType: value })}
+        />
       </div>
     </div>
   )
