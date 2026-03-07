@@ -3,8 +3,8 @@ import type { MailingModelRecord } from "@/lib/mailing-types"
 
 const AIRTABLE_API_URL = "https://api.airtable.com/v0"
 
-/** Table in the same base as Invoices (app1DQrDYl29uN2OR) */
-const SUPPORT_TABLE_NAME = "Support"
+/** Table in base 3 (Italy base) for mailing templates */
+const ITALY_TABLE_NAME = "Italy"
 
 function getField<T>(fields: Record<string, unknown>, ...keys: string[]): T | undefined {
   for (const key of keys) {
@@ -16,19 +16,19 @@ function getField<T>(fields: Record<string, unknown>, ...keys: string[]): T | un
 
 export async function GET() {
   const token = process.env.AIRTABLE_TOKEN
-  const baseId = process.env.AIRTABLE_BASE_ID
+  const baseId = process.env.AIRTABLE_BASE_ID_3
 
   if (!token || !baseId) {
     return NextResponse.json(
       {
         error:
-          "Airtable is not configured. Set AIRTABLE_TOKEN and AIRTABLE_BASE_ID in .env.local",
+          "Airtable is not configured. Set AIRTABLE_TOKEN and AIRTABLE_BASE_ID_3 in .env.local",
       },
       { status: 500 }
     )
   }
 
-  const pathTable = encodeURIComponent(SUPPORT_TABLE_NAME)
+  const pathTable = encodeURIComponent(ITALY_TABLE_NAME)
 
   try {
     const records: MailingModelRecord[] = []
@@ -51,7 +51,7 @@ export async function GET() {
         return NextResponse.json(
           {
             error: msg,
-            hint: `Ensure the "${SUPPORT_TABLE_NAME}" table exists in your base and your token has read access.`,
+            hint: `Ensure the "${ITALY_TABLE_NAME}" table exists in your base and your token has read access.`,
           },
           { status: response.status }
         )
