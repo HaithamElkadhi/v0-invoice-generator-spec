@@ -24,6 +24,22 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
+const MAX_CHARS_PREVIEW = 220
+
+function truncateMiddle(value: string, maxLength = 48): string {
+  if (!value) return value
+  if (value.length <= maxLength) return value
+  const left = Math.ceil((maxLength - 1) / 2)
+  const right = Math.floor((maxLength - 1) / 2)
+  return `${value.slice(0, left)}…${value.slice(value.length - right)}`
+}
+
+function previewText(value: string, maxChars = MAX_CHARS_PREVIEW): string {
+  const normalized = value.replace(/\s+/g, " ").trim()
+  if (normalized.length <= maxChars) return normalized
+  return `${normalized.slice(0, maxChars).trimEnd()}…`
+}
+
 function buildMailHtml(record: MailingModelRecord): string {
   const raw = (record.message || "").trim()
   const bodyHtml =
@@ -56,6 +72,7 @@ export default function MailingPage() {
   const [bcc, setBcc] = useState("")
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState<string | null>(null)
+  const [sendSuccess, setSendSuccess] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -89,6 +106,7 @@ export default function MailingPage() {
     setCc("")
     setBcc("")
     setSendError(null)
+    setSendSuccess(null)
     setSendDialogOpen(true)
   }
 
@@ -107,6 +125,7 @@ export default function MailingPage() {
     }
     setSending(true)
     setSendError(null)
+    setSendSuccess(null)
     try {
       const html = buildMailHtml(selectedRecord)
       const attachments =
@@ -134,6 +153,8 @@ export default function MailingPage() {
         setSendError(data.error || "Failed to send email")
         return
       }
+      setSendSuccess("Email sent successfully.")
+      await new Promise((resolve) => setTimeout(resolve, 1200))
       setSendDialogOpen(false)
       setSelectedRecord(null)
     } catch (e) {
@@ -197,34 +218,34 @@ export default function MailingPage() {
         )}
 
         {!loading && !error && records.length > 0 && (
-          <div className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
             {records.map((record) => (
               <article
                 key={record.id}
-                className="rounded-lg border border-border bg-card p-6 shadow-sm"
+                className="rounded-xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
               >
-                <div className="flex items-start gap-3">
+                <div className="flex h-full items-start gap-3">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[rgb(41,84,144)]/10 text-[rgb(41,84,144)]">
                     <Mail className="h-5 w-5" />
                   </div>
-                  <div className="min-w-0 flex-1 space-y-3">
-                    <h3 className="font-semibold text-foreground">
+                  <div className="min-w-0 flex flex-1 flex-col gap-3">
+                    <h3 className="truncate text-base font-semibold text-foreground" title={record.modelName || "(No name)"}>
                       {record.modelName || "(No name)"}
                     </h3>
                     {record.subject && (
-                      <p className="text-sm">
-                        <span className="font-medium text-muted-foreground">Subject: </span>
-                        <span className="text-foreground">{record.subject}</span>
+                      <p className="text-sm leading-6">
+                        <span className="font-medium text-muted-foreground">Subject:</span>{" "}
+                        <span className="break-words text-foreground">{record.subject}</span>
                       </p>
                     )}
                     {record.message && (
-                      <p className="whitespace-pre-wrap text-sm text-foreground">
-                        {record.message}
+                      <p className="rounded-md border border-border/60 bg-muted/20 px-3 py-2 text-sm text-foreground" title={record.message}>
+                        {previewText(record.message)}
                       </p>
                     )}
                     {record.attachments && record.attachments.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Paperclip className="h-4 w-4 text-muted-foreground" />
+                      <div className="flex flex-wrap items-center gap-2 rounded-md border border-border/60 bg-muted/20 px-3 py-2">
+                        <Paperclip className="h-4 w-4 shrink-0 text-muted-foreground" />
                         <span className="text-xs font-medium text-muted-foreground">
                           Attachments:
                         </span>
@@ -234,14 +255,15 @@ export default function MailingPage() {
                             href={att.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="rounded bg-muted px-2 py-1 text-xs text-[rgb(41,84,144)] hover:underline"
+                            className="inline-block max-w-full truncate rounded bg-muted px-2 py-1 text-xs text-[rgb(41,84,144)] hover:underline"
+                            title={att.filename || "Attachment"}
                           >
-                            {att.filename || "Attachment"}
+                            {truncateMiddle(att.filename || "Attachment")}
                           </a>
                         ))}
                       </div>
                     )}
-                    <div className="pt-2">
+                    <div className="mt-auto pt-2">
                       <Button
                         variant="outline"
                         size="sm"
@@ -274,6 +296,9 @@ export default function MailingPage() {
                     <p>
                       <span className="font-semibold text-muted-foreground">Subject: </span>
                       {selectedRecord.subject || "(No subject)"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Model: <span className="font-medium text-foreground">{selectedRecord.modelName || "(No name)"}</span>
                     </p>
                   </div>
                   <div className="rounded-md border border-border bg-muted/20 overflow-hidden">
@@ -311,6 +336,11 @@ export default function MailingPage() {
                       onChange={(e) => setTo(e.target.value)}
                       disabled={sending}
                     />
+                    {to.trim().length > 0 && (
+                      <p className="text-xs text-muted-foreground" title={to}>
+                        Recipient preview: {truncateMiddle(to.trim(), 70)}
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="mail-cc">CC</Label>
@@ -339,6 +369,11 @@ export default function MailingPage() {
                   )}
                 </div>
                 <DialogFooter className="shrink-0 border-t pt-4">
+                  {sendSuccess && (
+                    <p className="mr-auto text-sm font-medium text-emerald-600" role="status" aria-live="polite">
+                      {sendSuccess}
+                    </p>
+                  )}
                   <Button
                     type="button"
                     variant="outline"
@@ -353,7 +388,14 @@ export default function MailingPage() {
                     disabled={sending}
                     className="bg-[rgb(41,84,144)] hover:bg-[rgb(41,84,144)]/90"
                   >
-                    {sending ? "Sending…" : "Send email"}
+                    {sending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending…
+                      </>
+                    ) : (
+                      "Send email"
+                    )}
                   </Button>
                 </DialogFooter>
               </>

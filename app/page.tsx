@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { FileText, Mail, BookOpen, Layers, MessageCircle } from "lucide-react"
+import { FileText, Mail, BookOpen, Layers, MessageCircle, MailCheck } from "lucide-react"
 import { getPictureUrl, PICTURE_LABELS } from "@/lib/pictures"
 import { Button } from "@/components/ui/button"
 import { WhatsAppSendDialog } from "@/components/whatsapp-send-dialog"
@@ -73,6 +73,20 @@ export default function HomePage() {
             <div className="text-center">
               <h3 className="font-semibold text-foreground">Mailing</h3>
               <p className="mt-1 text-sm text-muted-foreground">Send and manage emails</p>
+            </div>
+          </Link>
+
+          {/* Email Validation - Active */}
+          <Link
+            href="/email-validation"
+            className="group flex flex-col items-center gap-4 rounded-lg border border-border bg-card p-8 shadow-sm transition-all hover:border-[rgb(41,84,144)] hover:shadow-md"
+          >
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[rgb(41,84,144)]/10 text-[rgb(41,84,144)] transition-colors group-hover:bg-[rgb(41,84,144)] group-hover:text-white">
+              <MailCheck className="h-8 w-8" />
+            </div>
+            <div className="text-center">
+              <h3 className="font-semibold text-foreground">Email Validation</h3>
+              <p className="mt-1 text-sm text-muted-foreground">Check if an email exists before sending</p>
             </div>
           </Link>
 
