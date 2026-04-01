@@ -90,10 +90,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, id: data?.id })
     }
 
-    // Proposal flow: toName, toEmail, subject, body (single recipient)
-    const { toName, toEmail, subject, body: emailBody } = body as {
+    // Proposal flow: toName, toEmail, optional cc, subject, body (single recipient)
+    const { toName, toEmail, cc, subject, body: emailBody } = body as {
       toName?: string
       toEmail?: string
+      cc?: string | string[]
       subject?: string
       body?: string
     }
@@ -107,9 +108,12 @@ export async function POST(request: NextRequest) {
 
     const html = buildHtml(emailBody ?? "")
 
+    const ccList = parseEmails(cc)
+
     const { data, error } = await resend.emails.send({
       from: defaultFrom,
       to: toEmail.trim(),
+      cc: ccList.length > 0 ? ccList : undefined,
       subject: subject || "(No subject)",
       html: html || "<p></p>",
     })

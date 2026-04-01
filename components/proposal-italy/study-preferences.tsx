@@ -283,6 +283,19 @@ export function StudyPreferencesSection({ data, onChange }: StudyPreferencesProp
           value={data.cityPreferenceType}
           onChange={(value) => onChange({ ...data, cityPreferenceType: value })}
         />
+        <div className="space-y-2">
+          <Label htmlFor="preferredCityUniversity">Preferred city / university</Label>
+          <Textarea
+            id="preferredCityUniversity"
+            placeholder="Write preferred cities, universities, or any detailed notes..."
+            value={data.preferredCityUniversity}
+            onChange={(e) =>
+              onChange({ ...data, preferredCityUniversity: e.target.value })
+            }
+            rows={4}
+            className="resize-y"
+          />
+        </div>
       </div>
     </div>
   )

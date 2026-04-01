@@ -96,6 +96,7 @@ export function buildProposalEmailBody(data: ProposalItalyData): string {
     row("Can pay application fees", prefs.canPayApplicationFees ? (APP_FEES_LABELS[prefs.canPayApplicationFees] || prefs.canPayApplicationFees) : ""),
     row("Scholarship & regional strategy", prefs.scholarshipStrategy?.length ? prefs.scholarshipStrategy.join(", ") : ""),
     row("City preference", prefs.cityPreferenceType ? (CITY_LABELS[prefs.cityPreferenceType] || prefs.cityPreferenceType) : ""),
+    row("Preferred city / university", prefs.preferredCityUniversity),
   ].filter(Boolean)
 
   const tableStyle = "width:100%;border-collapse:collapse;font-family:Arial,sans-serif;"

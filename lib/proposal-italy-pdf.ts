@@ -201,7 +201,14 @@ export async function generateProposalItalyPDF(data: ProposalItalyData): Promise
     0,
     contentWidth
   )
-  y += sp10 + 4
+  y += sp10 + 2
+  const sp11 = drawField(
+    "Preferred city / university",
+    sp.preferredCityUniversity || "-",
+    0,
+    contentWidth
+  )
+  y += sp11 + 4
 
   // Section 5: Services
   drawSectionTitle("5. SERVICES")

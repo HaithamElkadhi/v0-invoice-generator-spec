@@ -22,6 +22,7 @@ export interface StudyPreferences {
   canPayApplicationFees: string
   scholarshipStrategy: string[]
   cityPreferenceType: string
+  preferredCityUniversity: string
 }
 
 export interface Services {

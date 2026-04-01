@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
-import { ArrowLeft, FileDown, Mail, Eye } from "lucide-react"
+import { ArrowLeft, FileDown, Mail, Eye, Save, History, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -57,6 +57,7 @@ const initialData: ProposalItalyData = {
     canPayApplicationFees: "",
     scholarshipStrategy: [],
     cityPreferenceType: "",
+    preferredCityUniversity: "",
   },
   services: {
     selected: [],
@@ -64,20 +65,88 @@ const initialData: ProposalItalyData = {
   },
 }
 
+const PROPOSAL_HISTORY_KEY = "proposal-italy-history-v1"
+
+type SavedProposalItem = {
+  id: string
+  savedAt: string
+  data: ProposalItalyData
+}
+
 export default function ProposalItalyPage() {
   const [data, setData] = useState<ProposalItalyData>(initialData)
   const [isGenerating, setIsGenerating] = useState(false)
   const [emailOpen, setEmailOpen] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
   const [isSending, setIsSending] = useState(false)
+  const [savedProposals, setSavedProposals] = useState<SavedProposalItem[]>([])
   const [emailForm, setEmailForm] = useState({
     fullName: "",
     email: "",
+    additionalEmail: "contact@jeexpert-study.com",
     subject: "Your Study Proposal – Jeexpert",
   })
 
   const updateData = (updates: Partial<ProposalItalyData>) => {
     setData((prev) => ({ ...prev, ...updates }))
+  }
+
+  const loadSavedProposals = () => {
+    if (typeof window === "undefined") return
+    try {
+      const raw = window.localStorage.getItem(PROPOSAL_HISTORY_KEY)
+      if (!raw) {
+        setSavedProposals([])
+        return
+      }
+      const parsed = JSON.parse(raw) as SavedProposalItem[]
+      if (!Array.isArray(parsed)) {
+        setSavedProposals([])
+        return
+      }
+      setSavedProposals(parsed)
+    } catch {
+      setSavedProposals([])
+    }
+  }
+
+  useEffect(() => {
+    loadSavedProposals()
+  }, [])
+
+  const handleSaveProposal = () => {
+    try {
+      const item: SavedProposalItem = {
+        id: `${Date.now()}`,
+        savedAt: new Date().toISOString(),
+        data,
+      }
+      const next = [item, ...savedProposals].slice(0, 100)
+      setSavedProposals(next)
+      window.localStorage.setItem(PROPOSAL_HISTORY_KEY, JSON.stringify(next))
+      alert("Proposal saved locally.")
+    } catch (error) {
+      console.error("Save proposal failed:", error)
+      alert("Failed to save proposal locally.")
+    }
+  }
+
+  const handleLoadProposal = (item: SavedProposalItem) => {
+    setData(item.data)
+    setHistoryOpen(false)
+    alert("Proposal loaded from history.")
+  }
+
+  const handleDeleteSavedProposal = (id: string) => {
+    try {
+      const next = savedProposals.filter((item) => item.id !== id)
+      setSavedProposals(next)
+      window.localStorage.setItem(PROPOSAL_HISTORY_KEY, JSON.stringify(next))
+    } catch (error) {
+      console.error("Delete proposal failed:", error)
+      alert("Failed to delete saved proposal.")
+    }
   }
 
   const handleGeneratePDF = async () => {
@@ -111,6 +180,7 @@ export default function ProposalItalyPage() {
         body: JSON.stringify({
           toName: emailForm.fullName.trim(),
           toEmail: emailForm.email.trim(),
+          cc: emailForm.additionalEmail.trim(),
           subject: emailForm.subject.trim(),
           body: htmlBody,
         }),
@@ -122,7 +192,12 @@ export default function ProposalItalyPage() {
       }
       alert("Email sent successfully.")
       setEmailOpen(false)
-      setEmailForm((prev) => ({ ...prev, fullName: "", email: "" }))
+      setEmailForm((prev) => ({
+        ...prev,
+        fullName: "",
+        email: "",
+        additionalEmail: "contact@jeexpert-study.com",
+      }))
     } catch (err) {
       console.error("Send email error:", err)
       alert("Failed to send email. Please try again.")
@@ -138,6 +213,7 @@ export default function ProposalItalyPage() {
         ...prev,
         fullName: data.studentName,
         email: data.email,
+        additionalEmail: prev.additionalEmail || "contact@jeexpert-study.com",
         subject: prev.subject || "Your Study Proposal – Jeexpert",
       }))
     }
@@ -158,6 +234,73 @@ export default function ProposalItalyPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="border-[rgb(41,84,144)] text-[rgb(41,84,144)] hover:bg-[rgb(41,84,144)]/10"
+                onClick={handleSaveProposal}
+              >
+                <Save className="mr-2 h-4 w-4" />
+                Save
+              </Button>
+              <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-[rgb(41,84,144)] text-[rgb(41,84,144)] hover:bg-[rgb(41,84,144)]/10"
+                    onClick={loadSavedProposals}
+                  >
+                    <History className="mr-2 h-4 w-4" />
+                    History
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-h-[80vh] sm:max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Saved proposals history</DialogTitle>
+                    <DialogDescription>
+                      Proposals saved on this device only. Click one to load it into this page.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="max-h-[55vh] space-y-2 overflow-y-auto rounded-md border p-2">
+                    {savedProposals.length === 0 && (
+                      <p className="p-3 text-sm text-muted-foreground">
+                        No saved proposals yet.
+                      </p>
+                    )}
+                    {savedProposals.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center gap-2 rounded-md border px-3 py-2"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => handleLoadProposal(item)}
+                          className="min-w-0 flex-1 text-left text-sm hover:text-[rgb(41,84,144)]"
+                        >
+                          <p className="truncate font-medium text-foreground">
+                            {item.data.studentName || "Untitled proposal"}
+                          </p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {item.data.email || "No email"} - Saved{" "}
+                            {new Date(item.savedAt).toLocaleString()}
+                          </p>
+                        </button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          onClick={() => handleDeleteSavedProposal(item.id)}
+                          title="Delete saved proposal"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </DialogContent>
+              </Dialog>
               <Dialog open={emailOpen} onOpenChange={handleEmailOpenChange}>
                 <DialogTrigger asChild>
                   <Button
@@ -207,6 +350,21 @@ export default function ProposalItalyPage() {
                         value={emailForm.subject}
                         onChange={(e) =>
                           setEmailForm((prev) => ({ ...prev, subject: e.target.value }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email-additional">Additional email</Label>
+                      <Input
+                        id="email-additional"
+                        type="email"
+                        placeholder="contact@jeexpert-study.com"
+                        value={emailForm.additionalEmail}
+                        onChange={(e) =>
+                          setEmailForm((prev) => ({
+                            ...prev,
+                            additionalEmail: e.target.value,
+                          }))
                         }
                       />
                     </div>
