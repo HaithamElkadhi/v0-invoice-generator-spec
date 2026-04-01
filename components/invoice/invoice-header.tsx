@@ -4,8 +4,9 @@ import { useState, useRef, useEffect } from "react"
 import { RefreshCw } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
-import type { InvoiceData } from "@/lib/invoice-types"
+import { CURRENCY_OPTIONS, type InvoiceData } from "@/lib/invoice-types"
 
 interface InvoiceHeaderProps {
   data: InvoiceData
@@ -53,7 +54,7 @@ export function InvoiceHeader({ data, onChange }: InvoiceHeaderProps) {
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-4">
       <div className="space-y-2">
         <Label htmlFor="invoiceNumber">Invoice Number</Label>
         <div ref={wrapperRef} className="relative max-w-[280px]">
@@ -121,6 +122,25 @@ export function InvoiceHeader({ data, onChange }: InvoiceHeaderProps) {
           onChange={(e) => onChange({ dueDate: e.target.value })}
         />
         <p className="text-xs text-muted-foreground">Optional but recommended</p>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Currency</Label>
+        <Select
+          value={data.currency}
+          onValueChange={(value) => onChange({ currency: value as InvoiceData["currency"] })}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select currency" />
+          </SelectTrigger>
+          <SelectContent>
+            {CURRENCY_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   )

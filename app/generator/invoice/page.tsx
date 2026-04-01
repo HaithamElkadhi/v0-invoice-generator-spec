@@ -50,6 +50,7 @@ export default function InvoicePage() {
     invoiceNumber: "",
     date: new Date().toISOString().split("T")[0],
     dueDate: "",
+    currency: "EUR",
     clientName: "",
     clientEmail: "",
     clientAddress: "",
@@ -425,6 +426,7 @@ export default function InvoicePage() {
               discountPercentage={invoiceData.discountPercentage}
               discountAmount={discountAmount}
               finalTotal={finalTotal}
+              currency={invoiceData.currency}
             />
           </section>
         </div>

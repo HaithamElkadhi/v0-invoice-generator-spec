@@ -1,5 +1,5 @@
 import type { InvoiceDataWithTotals } from "./invoice-types"
-import { COMPANY_INFO, PAYPAL_EMAIL, BANK_DETAILS } from "./invoice-types"
+import { COMPANY_INFO, PAYPAL_EMAIL, BANK_DETAILS, formatInvoiceCurrency } from "./invoice-types"
 
 function escapeHtml(s: string): string {
   return String(s ?? "")
@@ -7,15 +7,6 @@ function escapeHtml(s: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
-}
-
-function formatCurrency(amount: number): string {
-  return (
-    new Intl.NumberFormat("it-IT", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount) + " €"
-  )
 }
 
 function formatDate(dateStr: string): string {
@@ -41,8 +32,8 @@ export function buildInvoiceEmailBody(data: InvoiceDataWithTotals): string {
         `<tr>
           <td style="padding:6px 12px 6px 0;vertical-align:top;font-size:14px;color:#111;">${escapeHtml(item.description)}</td>
           <td style="padding:6px 8px;text-align:center;font-size:14px;">${item.quantity}</td>
-          <td style="padding:6px 8px;text-align:right;font-size:14px;">${formatCurrency(item.unitPrice)}</td>
-          <td style="padding:6px 0 6px 8px;text-align:right;font-size:14px;">${formatCurrency(item.quantity * item.unitPrice)}</td>
+          <td style="padding:6px 8px;text-align:right;font-size:14px;">${formatInvoiceCurrency(item.unitPrice, data.currency)}</td>
+          <td style="padding:6px 0 6px 8px;text-align:right;font-size:14px;">${formatInvoiceCurrency(item.quantity * item.unitPrice, data.currency)}</td>
         </tr>`
     )
     .join("")
@@ -69,7 +60,7 @@ export function buildInvoiceEmailBody(data: InvoiceDataWithTotals): string {
   const discountSection =
     data.discountEnabled && data.discountPercentage > 0
       ? `<p style="margin:12px 0 4px;font-size:14px;"><strong>Discount:</strong> ${data.discountPercentage}%${data.discountReason?.trim() ? ` – ${escapeHtml(data.discountReason)}` : ""}</p>
-  <p style="margin:0 0 12px;font-size:14px;">Discount amount: ${formatCurrency(data.discountAmount)}</p>`
+  <p style="margin:0 0 12px;font-size:14px;">Discount amount: ${formatInvoiceCurrency(data.discountAmount, data.currency)}</p>`
       : ""
 
   const paymentSection =
@@ -102,9 +93,9 @@ export function buildInvoiceEmailBody(data: InvoiceDataWithTotals): string {
   ${itemsTable || "<p style='margin:0 0 12px;font-size:14px;'>No items.</p>"}
   ${discountSection}
 
-  <p style="margin:12px 0 4px;font-size:14px;"><strong>Subtotal:</strong> ${formatCurrency(data.subtotal)}</p>
-  ${data.discountEnabled && data.discountAmount > 0 ? `<p style="margin:0 0 4px;font-size:14px;"><strong>Discount:</strong> ${formatCurrency(data.discountAmount)}</p>` : ""}
-  <p style="margin:8px 0 12px;font-size:15px;font-weight:700;"><strong>Total:</strong> ${formatCurrency(data.finalTotal)}</p>
+  <p style="margin:12px 0 4px;font-size:14px;"><strong>Subtotal:</strong> ${formatInvoiceCurrency(data.subtotal, data.currency)}</p>
+  ${data.discountEnabled && data.discountAmount > 0 ? `<p style="margin:0 0 4px;font-size:14px;"><strong>Discount:</strong> ${formatInvoiceCurrency(data.discountAmount, data.currency)}</p>` : ""}
+  <p style="margin:8px 0 12px;font-size:15px;font-weight:700;"><strong>Total:</strong> ${formatInvoiceCurrency(data.finalTotal, data.currency)}</p>
 
   ${paymentSection}
 

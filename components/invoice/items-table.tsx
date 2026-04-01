@@ -3,7 +3,7 @@
 import { Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import type { InvoiceData, InvoiceItem } from "@/lib/invoice-types"
+import { formatInvoiceCurrency, type InvoiceData, type InvoiceItem } from "@/lib/invoice-types"
 
 interface ItemsTableProps {
   data: InvoiceData
@@ -30,13 +30,6 @@ export function ItemsTable({ data, onChange }: ItemsTableProps) {
     onChange({
       items: data.items.map((item) => (item.id === id ? { ...item, ...updates } : item)),
     })
-  }
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("it-IT", {
-      style: "currency",
-      currency: "EUR",
-    }).format(amount)
   }
 
   return (
@@ -91,7 +84,9 @@ export function ItemsTable({ data, onChange }: ItemsTableProps) {
                     className="text-right"
                   />
                 </td>
-                <td className="py-3 pr-4 text-right font-medium">{formatCurrency(item.quantity * item.unitPrice)}</td>
+                <td className="py-3 pr-4 text-right font-medium">
+                  {formatInvoiceCurrency(item.quantity * item.unitPrice, data.currency)}
+                </td>
                 <td className="py-3">
                   <Button
                     variant="ghost"
@@ -164,7 +159,9 @@ export function ItemsTable({ data, onChange }: ItemsTableProps) {
             </div>
             <div className="flex justify-between items-center pt-2 border-t border-border">
               <span className="text-sm text-muted-foreground">Line Total</span>
-              <span className="font-semibold">{formatCurrency(item.quantity * item.unitPrice)}</span>
+              <span className="font-semibold">
+                {formatInvoiceCurrency(item.quantity * item.unitPrice, data.currency)}
+              </span>
             </div>
           </div>
         ))}

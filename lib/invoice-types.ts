@@ -5,6 +5,8 @@ export interface InvoiceItem {
   unitPrice: number
 }
 
+export type InvoiceCurrency = "EUR" | "USD" | "TND"
+
 export interface PaymentMethodsSelection {
   paypal: boolean
   bankTransfer: boolean
@@ -15,6 +17,7 @@ export interface InvoiceData {
   invoiceNumber: string
   date: string
   dueDate: string
+  currency: InvoiceCurrency
   clientName: string
   clientEmail: string
   clientAddress: string
@@ -55,3 +58,16 @@ export const BRAND_COLORS = {
   primary: { r: 41, g: 84, b: 144 },
   accent: { r: 220, g: 53, b: 69 },
 } as const
+
+export const CURRENCY_OPTIONS: { value: InvoiceCurrency; label: string }[] = [
+  { value: "EUR", label: "Euro (EUR)" },
+  { value: "USD", label: "Dollar (USD)" },
+  { value: "TND", label: "Dinar tunisien (TND)" },
+]
+
+export function formatInvoiceCurrency(amount: number, currency: InvoiceCurrency): string {
+  return new Intl.NumberFormat("it-IT", {
+    style: "currency",
+    currency,
+  }).format(amount)
+}

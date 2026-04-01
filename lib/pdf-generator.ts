@@ -1,20 +1,18 @@
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
-import { COMPANY_INFO, BANK_DETAILS, PAYPAL_EMAIL, BRAND_COLORS, type InvoiceDataWithTotals } from "./invoice-types"
+import {
+  COMPANY_INFO,
+  BANK_DETAILS,
+  PAYPAL_EMAIL,
+  BRAND_COLORS,
+  formatInvoiceCurrency,
+  type InvoiceDataWithTotals,
+} from "./invoice-types"
 
 const formatDateToDDMMYYYY = (dateString: string): string => {
   if (!dateString) return ""
   const [year, month, day] = dateString.split("-")
   return `${day}/${month}/${year}`
-}
-
-const formatCurrency = (amount: number): string => {
-  return (
-    new Intl.NumberFormat("it-IT", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount) + " €"
-  )
 }
 
 const loadImage = (url: string): Promise<HTMLImageElement | null> => {
@@ -143,8 +141,8 @@ export async function generateInvoicePDF(data: InvoiceDataWithTotals) {
     .map((item) => [
       item.description,
       item.quantity.toString(),
-      formatCurrency(item.unitPrice),
-      formatCurrency(item.quantity * item.unitPrice),
+      formatInvoiceCurrency(item.unitPrice, data.currency),
+      formatInvoiceCurrency(item.quantity * item.unitPrice, data.currency),
     ])
 
   autoTable(doc, {
@@ -185,14 +183,14 @@ export async function generateInvoicePDF(data: InvoiceDataWithTotals) {
   doc.setTextColor(100, 100, 100)
   doc.text("Subtotal", totalsX, yPos)
   doc.setTextColor(40, 40, 40)
-  doc.text(formatCurrency(data.subtotal), totalsValueX, yPos, { align: "right" })
+  doc.text(formatInvoiceCurrency(data.subtotal, data.currency), totalsValueX, yPos, { align: "right" })
 
   if (data.discountEnabled && data.discountPercentage > 0) {
     yPos += 7
     doc.setTextColor(100, 100, 100)
     doc.text(`Discount (${data.discountPercentage}%)`, totalsX, yPos)
     doc.setTextColor(accent.r, accent.g, accent.b)
-    doc.text(`-${formatCurrency(data.discountAmount)}`, totalsValueX, yPos, {
+    doc.text(`-${formatInvoiceCurrency(data.discountAmount, data.currency)}`, totalsValueX, yPos, {
       align: "right",
     })
 
@@ -213,7 +211,7 @@ export async function generateInvoicePDF(data: InvoiceDataWithTotals) {
   doc.setFontSize(11)
   doc.setTextColor(255, 255, 255)
   doc.text("TOTAL", totalsX, yPos + 3)
-  doc.text(formatCurrency(data.finalTotal), totalsValueX, yPos + 3, {
+  doc.text(formatInvoiceCurrency(data.finalTotal, data.currency), totalsValueX, yPos + 3, {
     align: "right",
   })
 
