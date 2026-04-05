@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
+import Link from "next/link"
 import { Search, MessageCircle } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -13,7 +14,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { WhatsAppSendDialog } from "@/components/whatsapp-send-dialog"
 import type { ProposalItalyData } from "@/lib/proposal-italy-types"
 
 type Lead = { id: string; fullName: string; email: string; phone: string; nationality: string }
@@ -25,8 +25,6 @@ interface StudentInfoProps {
 
 export function StudentInfo({ data, onChange }: StudentInfoProps) {
   const [searchOpen, setSearchOpen] = useState(false)
-  const [whatsappOpen, setWhatsappOpen] = useState(false)
-  const [whatsappLead, setWhatsappLead] = useState<Lead | null>(null)
   const [leads, setLeads] = useState<Lead[]>([])
   const [leadsLoading, setLeadsLoading] = useState(false)
   const [leadsError, setLeadsError] = useState<string | null>(null)
@@ -67,11 +65,8 @@ export function StudentInfo({ data, onChange }: StudentInfoProps) {
     setSearchQuery("")
   }
 
-  const openWhatsAppForLead = (e: React.MouseEvent, lead: Lead) => {
-    e.stopPropagation()
-    setWhatsappLead(lead)
-    setWhatsappOpen(true)
-  }
+  const whatsappHrefForPhone = (phone: string) =>
+    `/whatsapp?phone=${encodeURIComponent(phone)}`
 
   return (
     <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
@@ -129,11 +124,16 @@ export function StudentInfo({ data, onChange }: StudentInfoProps) {
                             type="button"
                             variant="ghost"
                             size="icon-sm"
-                            className="shrink-0 text-[#25D366] hover:bg-[#25D366]/10 hover:text-[#25D366]"
-                            onClick={(e) => openWhatsAppForLead(e, lead)}
+                            className="shrink-0 p-0 text-[#25D366] hover:bg-[#25D366]/10 hover:text-[#25D366]"
+                            asChild
                             title="Contact via WhatsApp"
                           >
-                            <MessageCircle className="h-4 w-4" />
+                            <Link
+                              href={whatsappHrefForPhone(lead.phone)}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MessageCircle className="h-4 w-4" />
+                            </Link>
                           </Button>
                         )}
                       </li>
@@ -145,14 +145,6 @@ export function StudentInfo({ data, onChange }: StudentInfoProps) {
           </DialogContent>
         </Dialog>
       </div>
-      <WhatsAppSendDialog
-        open={whatsappOpen}
-        onOpenChange={(open) => {
-          setWhatsappOpen(open)
-          if (!open) setWhatsappLead(null)
-        }}
-        initialPhone={whatsappLead?.phone ?? ""}
-      />
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="studentName">Full Name *</Label>
@@ -184,14 +176,13 @@ export function StudentInfo({ data, onChange }: StudentInfoProps) {
                 variant="ghost"
                 size="sm"
                 className="shrink-0 gap-1.5 text-[#25D366] hover:bg-[#25D366]/10 hover:text-[#25D366]"
-                onClick={() => {
-                  setWhatsappLead({ id: "", fullName: data.studentName, email: data.email, phone: data.phone, nationality: data.nationality })
-                  setWhatsappOpen(true)
-                }}
+                asChild
                 title="Contact via WhatsApp"
               >
-                <MessageCircle className="h-4 w-4" />
-                WhatsApp
+                <Link href={whatsappHrefForPhone(data.phone)}>
+                  <MessageCircle className="h-4 w-4" />
+                  WhatsApp
+                </Link>
               </Button>
             )}
           </div>
