@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react"
 import Link from "next/link"
-import { ArrowLeft, BookOpen, FileText, GraduationCap, Lock, Stamp } from "lucide-react"
+import { ArrowLeft, BookOpen, FileText, GraduationCap, Languages, Lock, Stamp } from "lucide-react"
 
 export const metadata = {
   title: "Knowledge Hub",
@@ -53,10 +53,11 @@ const CARDS: HubCard[] = [
     icon: BookOpen,
   },
   {
-    title: "Traduction assermentée",
-    description: "À venir : bonnes pratiques et liste d’orientations.",
-    available: false,
-    icon: BookOpen,
+    href: "/knowledge-hub/traducteurs-assermentes",
+    title: "Traducteurs assermentés",
+    description: "Liste indicative de contacts en Tunisie (nom, adresse, téléphone, email).",
+    available: true,
+    icon: Languages,
   },
   {
     title: "Pré-inscription universitaire",
