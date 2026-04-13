@@ -36,8 +36,10 @@ const initialData: ServiceContractData = {
   amountAcompte: "",
   formulaAcceptation: false,
   amountAcceptation: "",
-  formulaComplet: false,
-  amountComplet: "",
+  formulaAcompteBourse: false,
+  amountAcompteBourse: "",
+  formulaClotureBourse: false,
+  amountClotureBourse: "",
   faitA: "",
   contractDate: new Date().toISOString().split("T")[0],
   signatureClientName: "",
@@ -373,22 +375,43 @@ export default function ContratPage() {
                 <div className="flex items-start gap-3">
                   <Checkbox
                     id="fC"
-                    checked={data.formulaComplet}
-                    onCheckedChange={(v) => updateData({ formulaComplet: v === true })}
+                    checked={data.formulaAcompteBourse}
+                    onCheckedChange={(v) => updateData({ formulaAcompteBourse: v === true })}
                     className="mt-1"
                   />
                   <div className="min-w-0 flex-1 space-y-2">
-                    <Label htmlFor="amountComplet" className="cursor-pointer font-medium leading-tight">
-                      Frais complets – Accompagnement global
+                    <Label htmlFor="amountAcompteBourse" className="cursor-pointer font-medium leading-tight">
+                      Acompte - Frais Administratif Dossier Bourse
                     </Label>
                     <Input
-                      id="amountComplet"
+                      id="amountAcompteBourse"
                       placeholder={`Montant (${data.currency})`}
-                      value={data.amountComplet}
-                      onChange={(e) => updateData({ amountComplet: e.target.value })}
+                      value={data.amountAcompteBourse}
+                      onChange={(e) => updateData({ amountAcompteBourse: e.target.value })}
                     />
                   </div>
                 </div>
+
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id="fD"
+                    checked={data.formulaClotureBourse}
+                    onCheckedChange={(v) => updateData({ formulaClotureBourse: v === true })}
+                    className="mt-1"
+                  />
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <Label htmlFor="amountClotureBourse" className="cursor-pointer font-medium leading-tight">
+                      Frais Cloture Bourse si Obtenu
+                    </Label>
+                    <Input
+                      id="amountClotureBourse"
+                      placeholder={`Montant (${data.currency}), payable si bourse obtenue`}
+                      value={data.amountClotureBourse}
+                      onChange={(e) => updateData({ amountClotureBourse: e.target.value })}
+                    />
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>

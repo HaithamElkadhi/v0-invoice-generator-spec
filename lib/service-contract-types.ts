@@ -9,8 +9,10 @@ export type ServiceContractData = {
   amountAcompte: string
   formulaAcceptation: boolean
   amountAcceptation: string
-  formulaComplet: boolean
-  amountComplet: string
+  formulaAcompteBourse: boolean
+  amountAcompteBourse: string
+  formulaClotureBourse: boolean
+  amountClotureBourse: string
   faitA: string
   contractDate: string
   signatureClientName: string

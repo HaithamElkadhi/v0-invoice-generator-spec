@@ -150,17 +150,18 @@ export async function generateServiceContractPDF(data: ServiceContractData): Pro
   paragraph(`Inclut : Montant : ${data.amountAcceptation.trim() || "______"} ${currencyLabel} (payable en cas d'admission).`)
 
   doc.setFont("helvetica", "bold")
-  checkPageBreak(30)
-  doc.text(`${mark(data.formulaComplet)} Frais complets – Accompagnement global`, margin, y)
+  checkPageBreak(18)
+  doc.text(`${mark(data.formulaAcompteBourse)} Acompte - Frais Administratif Dossier Bourse`, margin, y)
   y += 4
   doc.setFont("helvetica", "normal")
-  const completLines = doc.splitTextToSize(
-    `Inclut : Accompagnement administratif pour l'admission ; Accompagnement administratif pour la bourse ; Assistance dans les démarches pré-consulaires (visa, logement, etc.) ; Suivi global jusqu'à l'installation en Italie. Montant : ${data.amountComplet.trim() || "______"} ${currencyLabel}`,
-    contentWidth
-  )
-  checkPageBreak(completLines.length * 4.2 + 4)
-  doc.text(completLines, margin, y)
-  y += completLines.length * 4.2 + 5
+  paragraph(`Inclut : Montant : ${data.amountAcompteBourse.trim() || "______"} ${currencyLabel}.`)
+
+  doc.setFont("helvetica", "bold")
+  checkPageBreak(18)
+  doc.text(`${mark(data.formulaClotureBourse)} Frais Cloture Bourse si Obtenu`, margin, y)
+  y += 4
+  doc.setFont("helvetica", "normal")
+  paragraph(`Inclut : Montant : ${data.amountClotureBourse.trim() || "______"} ${currencyLabel} (payable si bourse obtenue).`)
 
   doc.setFont("helvetica", "bold")
   doc.text("Conditions de paiement", margin, y)
