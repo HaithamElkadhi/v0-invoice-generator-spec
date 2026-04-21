@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { FileText, FileSpreadsheet, ArrowLeft, ScrollText } from "lucide-react"
+import { FileText, FileSpreadsheet, ArrowLeft, ScrollText, ReceiptText, CreditCard } from "lucide-react"
 import { getPictureUrl, PICTURE_LABELS } from "@/lib/pictures"
 
 export default function GeneratorPage() {
@@ -73,6 +73,32 @@ export default function GeneratorPage() {
             <div className="text-center">
               <h3 className="font-semibold text-foreground">Contrat</h3>
               <p className="mt-1 text-sm text-muted-foreground">Prestation de services JEEXPERT (Italie)</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/generator/payment-receipt"
+            className="group flex flex-col items-center gap-4 rounded-lg border border-border bg-card p-8 shadow-sm transition-all hover:border-[rgb(41,84,144)] hover:shadow-md"
+          >
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[rgb(41,84,144)]/10 text-[rgb(41,84,144)] transition-colors group-hover:bg-[rgb(41,84,144)] group-hover:text-white">
+              <ReceiptText className="h-8 w-8" />
+            </div>
+            <div className="text-center">
+              <h3 className="font-semibold text-foreground">Paiement Receipt</h3>
+              <p className="mt-1 text-sm text-muted-foreground">Generate proof of payment documents</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/generator/paiement"
+            className="group flex flex-col items-center gap-4 rounded-lg border border-border bg-card p-8 shadow-sm transition-all hover:border-[rgb(41,84,144)] hover:shadow-md"
+          >
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[rgb(41,84,144)]/10 text-[rgb(41,84,144)] transition-colors group-hover:bg-[rgb(41,84,144)] group-hover:text-white">
+              <CreditCard className="h-8 w-8" />
+            </div>
+            <div className="text-center">
+              <h3 className="font-semibold text-foreground">Paiement</h3>
+              <p className="mt-1 text-sm text-muted-foreground">Fetch and review payments from Airtable</p>
             </div>
           </Link>
         </div>

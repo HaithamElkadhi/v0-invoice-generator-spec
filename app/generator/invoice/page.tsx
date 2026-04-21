@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { ArrowLeft, Download, Mail, Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -45,7 +46,23 @@ const initialItem: InvoiceItem = {
   unitPrice: 0,
 }
 
+const INVOICE_PREFILL_STORAGE_KEY = "invoice-prefill-v1"
+
+type InvoicePrefillPayload = {
+  invoiceNumber?: string
+  date?: string
+  dueDate?: string
+  currency?: InvoiceData["currency"]
+  clientName?: string
+  clientEmail?: string
+  clientAddress?: string
+  itemDescription?: string
+  itemAmount?: number
+  paymentMethods?: InvoiceData["paymentMethods"]
+}
+
 export default function InvoicePage() {
+  const searchParams = useSearchParams()
   const [invoiceData, setInvoiceData] = useState<InvoiceData>({
     invoiceNumber: "",
     date: new Date().toISOString().split("T")[0],
@@ -80,6 +97,55 @@ export default function InvoicePage() {
   const updateInvoiceData = useCallback((updates: Partial<InvoiceData>) => {
     setInvoiceData((prev) => ({ ...prev, ...updates }))
   }, [])
+
+  useEffect(() => {
+    if (searchParams.get("prefill") !== "1") return
+    try {
+      const raw = window.localStorage.getItem(INVOICE_PREFILL_STORAGE_KEY)
+      if (!raw) return
+      const prefill = JSON.parse(raw) as InvoicePrefillPayload
+
+      const safeCurrency =
+        prefill.currency === "EUR" || prefill.currency === "USD" || prefill.currency === "TND"
+          ? prefill.currency
+          : "EUR"
+
+      const safeAmount =
+        typeof prefill.itemAmount === "number" && Number.isFinite(prefill.itemAmount) && prefill.itemAmount >= 0
+          ? prefill.itemAmount
+          : 0
+
+      const safePaymentMethods = prefill.paymentMethods ?? {
+        paypal: false,
+        bankTransfer: false,
+        other: false,
+      }
+
+      setInvoiceData((prev) => ({
+        ...prev,
+        invoiceNumber: prefill.invoiceNumber ?? prev.invoiceNumber,
+        date: prefill.date ?? prev.date,
+        dueDate: prefill.dueDate ?? prev.dueDate,
+        currency: safeCurrency,
+        clientName: prefill.clientName ?? prev.clientName,
+        clientEmail: prefill.clientEmail ?? prev.clientEmail,
+        clientAddress: prefill.clientAddress ?? prev.clientAddress,
+        items: [
+          {
+            id: crypto.randomUUID(),
+            description: prefill.itemDescription ?? "Payment",
+            quantity: 1,
+            unitPrice: safeAmount,
+          },
+        ],
+        paymentMethods: safePaymentMethods,
+      }))
+
+      window.localStorage.removeItem(INVOICE_PREFILL_STORAGE_KEY)
+    } catch (error) {
+      console.error("Failed to prefill invoice form:", error)
+    }
+  }, [searchParams])
 
   const subtotal = invoiceData.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
 
