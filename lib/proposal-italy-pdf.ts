@@ -18,6 +18,12 @@ export async function generateProposalItalyPDF(data: ProposalItalyData): Promise
     const date = new Date(dateString)
     return date.toLocaleDateString("en-GB")
   }
+  const toGpa = (score: string, maxScore: string) => {
+    const s = Number(score)
+    const m = Number(maxScore)
+    if (!Number.isFinite(s) || !Number.isFinite(m) || m <= 0) return "-"
+    return (Math.round(((s / m) * 4) * 100) / 100).toFixed(2)
+  }
 
   const checkPageBreak = (requiredSpace: number) => {
     if (y + requiredSpace > pageHeight - 25) {
@@ -72,15 +78,10 @@ export async function generateProposalItalyPDF(data: ProposalItalyData): Promise
   // Section 1: Proposal Information
   drawSectionTitle("1. PROPOSAL INFORMATION")
   const row1Height = Math.max(
-    drawField("Proposal Number", data.proposalNumber, 0),
-    drawField("Student ID", data.studentId, contentWidth / 2),
-  )
-  y += row1Height + 2
-  const row2Height = Math.max(
     drawField("Proposal Date", formatDate(data.proposalDate), 0),
     drawField("Valid Until", formatDate(data.validUntil), contentWidth / 2),
   )
-  y += row2Height + 4
+  y += row1Height + 4
 
   // Section 2: Student Information
   drawSectionTitle("2. STUDENT INFORMATION")
@@ -94,49 +95,62 @@ export async function generateProposalItalyPDF(data: ProposalItalyData): Promise
   const spro = data.studentProfile
   const cp1 = Math.max(
     drawField("Current Status", spro.currentStatus || "-", 0),
-    drawField("Highest Degree Obtained", spro.highestDegreeObtained || "-", contentWidth / 2),
+    drawField("Academic Level", spro.academicLevel || "-", contentWidth / 2),
   )
   y += cp1 + 2
   const cp2 = Math.max(
-    drawField("Field of Previous Studies", spro.fieldOfPreviousStudies || "-", 0),
+    drawField("Obtained Diploma", spro.obtainedDiploma?.length ? spro.obtainedDiploma.join(", ") : "-", 0),
     drawField("Year of Graduation", spro.yearOfGraduation || "-", contentWidth / 2),
   )
   y += cp2 + 2
-  const cp3 = Math.max(
-    drawField("Current Occupation", spro.currentOccupation || "-", 0),
-    drawField("English Level", spro.englishLevel || "-", contentWidth / 2),
-  )
+  const cp3 = drawField("Field of Previous Studies", spro.fieldOfPreviousStudies || "-", 0, contentWidth)
   y += cp3 + 2
   const cp4 = Math.max(
-    drawField("English Certificate", spro.englishCertificate || "-", 0),
-    drawField("Other Languages", spro.otherLanguages?.length ? spro.otherLanguages.join(", ") : "-", contentWidth / 2),
+    drawField("Current Occupation", spro.currentOccupation || "-", 0),
+    drawField("Languages", spro.languages?.length ? spro.languages.join(", ") : "-", contentWidth / 2),
   )
   y += cp4 + 2
   const cp5 = drawField("Note", spro.note || "-", 0, contentWidth)
   y += cp5 + 4
+  const academicRecords = spro.academicRecords || []
+  if (academicRecords.length > 0) {
+    drawSectionTitle("3B. ACADEMIC RECORDS")
+    academicRecords.forEach((record, index) => {
+      const line = [
+        `Diploma: ${record.diploma || "-"}`,
+        `Score: ${record.score || "-"}`,
+        `Max Score: ${record.maxScore || "-"}`,
+        `GPA: ${toGpa(record.score, record.maxScore)}`,
+      ].join(" | ")
+      const recHeight = drawField(`Record ${index + 1}`, line, 0, contentWidth)
+      y += recHeight + 2
+    })
+    y += 2
+  }
+  const languageRecords = spro.languageRecords || []
+  if (languageRecords.length > 0) {
+    drawSectionTitle("3C. LANGUAGES DETAILS")
+    languageRecords.forEach((record, index) => {
+      const line = [
+        `Language: ${record.language || "-"}`,
+        `Level: ${record.level || "-"}`,
+        `Certificate: ${record.certificate || "-"}`,
+      ].join(" | ")
+      const recHeight = drawField(`Language ${index + 1}`, line, 0, contentWidth)
+      y += recHeight + 2
+    })
+    y += 2
+  }
 
   // Section 4: Study Preferences
   drawSectionTitle("4. STUDY PREFERENCES")
   const sp = data.studyPreferences
   const degreeLabels: Record<string, string> = {
-    bachelor: "Bachelor (Laurea Triennale)",
-    master: "Master (Laurea Magistrale – 2 years)",
-    "master-1y": "1-year Master (Master I livello)",
-  }
-  const englishLabels: Record<string, string> = {
-    english_only: "English only",
-    english_preferred: "English preferred but open to Italian",
-    italian_acceptable: "Italian acceptable",
-  }
-  const scholarshipDepLabels: Record<string, string> = {
-    yes_cannot_proceed: "Yes – without scholarship I cannot proceed",
-    prefer_partial: "Prefer scholarship but can manage partially",
-    no: "No",
-  }
-  const appFeesLabels: Record<string, string> = {
-    yes: "Yes",
-    case_by_case: "Case by case",
-    no: "No",
+    bachelor: "Bachelor",
+    master: "Master",
+    researcher: "Searcher",
+    phd: "PHD",
+    "formation-prof": "Formation Prof",
   }
   const cityLabels: Record<string, string> = {
     large_international: "Large international city",
@@ -144,56 +158,65 @@ export async function generateProposalItalyPDF(data: ProposalItalyData): Promise
     affordable_south: "Affordable southern region",
     no_preference: "No preference (best admission chance)",
   }
+  const financingPlanLabels: Record<string, string> = {
+    "scholarship-only": "Fully dependent on scholarship",
+    "scholarship-plus-personal": "Scholarship + personal funds",
+    "personal-family-only": "Personal / family funds only",
+    "not-sure-yet": "Not sure yet",
+  }
+  const yesNoLabels: Record<string, string> = { yes: "Yes", no: "No" }
+  const guarantorLabels: Record<string, string> = {
+    self: "Self",
+    parent: "Parent",
+    relative: "Relative",
+    sponsor: "Sponsor",
+  }
+  const appFeesPrefLabels: Record<string, string> = {
+    separate: "I can pay application fees separately",
+    "include-in-service": "I prefer to include them in the service",
+  }
 
   const sp1 = Math.max(
-    drawField("Country", sp.country || "-", 0),
+    drawField("Target Degree Level", sp.targetDegreeLevel ? degreeLabels[sp.targetDegreeLevel] || sp.targetDegreeLevel : "-", 0),
     drawField("Intended Intake", sp.intendedIntake || "-", contentWidth / 2),
   )
   y += sp1 + 2
-  const targetDegreeLabel =
-    sp.country === "Italy" && sp.targetDegreeLevel
-      ? degreeLabels[sp.targetDegreeLevel] || sp.targetDegreeLevel
-      : "-"
-  const sp2 = drawField("Target Degree Level", targetDegreeLabel, 0, contentWidth)
+  const sp2 = drawField("Field of Study (Primary)", sp.fieldOfStudyPrimary || "-", 0, contentWidth)
   y += sp2 + 2
-  const sp3 = drawField("Field of Study (Primary)", sp.fieldOfStudyPrimary || "-", 0, contentWidth)
+  const sp3 = drawField("Alternative Field", sp.alternativeField || "-", 0, contentWidth)
   y += sp3 + 2
-  const sp4 = drawField("Alternative Field", sp.alternativeField || "-", 0, contentWidth)
+  const sp4 = drawField(
+    "Program Language",
+    sp.programLanguages?.length ? sp.programLanguages.join(", ") : "-",
+    0,
+    contentWidth
+  )
   y += sp4 + 2
   const sp5 = drawField(
-    "Specific Details About Field of Study",
-    sp.specificDetailsFieldOfStudy || "-",
+    "Financing Plan",
+    sp.financingPlan ? financingPlanLabels[sp.financingPlan] || sp.financingPlan : "-",
     0,
     contentWidth
   )
   y += sp5 + 2
-  const sp6 = drawField(
-    "English-taught programs",
-    sp.englishTaughtOnly ? englishLabels[sp.englishTaughtOnly] || sp.englishTaughtOnly : "-",
-    0,
-    contentWidth
+  const sp6 = Math.max(
+    drawField("Blocked Account", sp.blockedAccount ? yesNoLabels[sp.blockedAccount] || sp.blockedAccount : "-", 0),
+    drawField("Support From Abroad", sp.hasAbroadSupport ? yesNoLabels[sp.hasAbroadSupport] || sp.hasAbroadSupport : "-", contentWidth / 2),
   )
   y += sp6 + 2
   const sp7 = drawField(
-    "Dependent on scholarship",
-    sp.scholarshipDependent ? scholarshipDepLabels[sp.scholarshipDependent] || sp.scholarshipDependent : "-",
+    "Abroad Support Details",
+    sp.abroadSupportDetails || "-",
     0,
     contentWidth
   )
   y += sp7 + 2
-  const sp8 = drawField(
-    "Can pay application fees",
-    sp.canPayApplicationFees ? appFeesLabels[sp.canPayApplicationFees] || sp.canPayApplicationFees : "-",
-    0,
-    contentWidth
+  const sp8 = Math.max(
+    drawField("Financial Guarantor", sp.financialGuarantor ? guarantorLabels[sp.financialGuarantor] || sp.financialGuarantor : "-", 0),
+    drawField("Application Fees Preference", sp.applicationFeesPreference ? appFeesPrefLabels[sp.applicationFeesPreference] || sp.applicationFeesPreference : "-", contentWidth / 2),
   )
   y += sp8 + 2
-  const sp9 = drawField(
-    "Scholarship & Regional Strategy",
-    sp.scholarshipStrategy?.length ? sp.scholarshipStrategy.join(", ") : "-",
-    0,
-    contentWidth
-  )
+  const sp9 = drawField("Available Budget", sp.projectBudget || "-", 0, contentWidth)
   y += sp9 + 2
   const sp10 = drawField(
     "City Preference Type",
@@ -238,8 +261,9 @@ export async function generateProposalItalyPDF(data: ProposalItalyData): Promise
     drawFooter()
   }
 
-  const filename = data.proposalNumber
-    ? `Proposal_${data.proposalNumber.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`
+  const safeStudentName = data.studentName.trim().replace(/[^a-zA-Z0-9]/g, "_")
+  const filename = safeStudentName
+    ? `Proposal_${safeStudentName}_${new Date().toISOString().split("T")[0]}.pdf`
     : `Proposal_draft_${new Date().toISOString().split("T")[0]}.pdf`
 
   doc.save(filename)

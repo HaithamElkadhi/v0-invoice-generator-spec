@@ -1,27 +1,11 @@
 import type { ProposalItalyData } from "./proposal-italy-types"
 
 const DEGREE_LABELS: Record<string, string> = {
-  bachelor: "Bachelor (Laurea Triennale)",
-  master: "Master (Laurea Magistrale – 2 years)",
-  "master-1y": "1-year Master (Master I livello)",
-}
-
-const ENGLISH_LABELS: Record<string, string> = {
-  english_only: "English only",
-  english_preferred: "English preferred but open to Italian",
-  italian_acceptable: "Italian acceptable",
-}
-
-const SCHOLARSHIP_DEP_LABELS: Record<string, string> = {
-  yes_cannot_proceed: "Yes – without scholarship I cannot proceed",
-  prefer_partial: "Prefer scholarship but can manage partially",
-  no: "No",
-}
-
-const APP_FEES_LABELS: Record<string, string> = {
-  yes: "Yes",
-  case_by_case: "Case by case",
-  no: "No",
+  bachelor: "Bachelor",
+  master: "Master",
+  researcher: "Searcher",
+  phd: "PHD",
+  "formation-prof": "Formation Prof",
 }
 
 const CITY_LABELS: Record<string, string> = {
@@ -29,6 +13,30 @@ const CITY_LABELS: Record<string, string> = {
   student_city: "Student city",
   affordable_south: "Affordable southern region",
   no_preference: "No preference (best admission chance)",
+}
+
+const FINANCING_PLAN_LABELS: Record<string, string> = {
+  "scholarship-only": "Fully dependent on scholarship",
+  "scholarship-plus-personal": "Scholarship + personal funds",
+  "personal-family-only": "Personal / family funds only",
+  "not-sure-yet": "Not sure yet",
+}
+
+const YES_NO_LABELS: Record<string, string> = {
+  yes: "Yes",
+  no: "No",
+}
+
+const GUARANTOR_LABELS: Record<string, string> = {
+  self: "Self",
+  parent: "Parent",
+  relative: "Relative",
+  sponsor: "Sponsor",
+}
+
+const APP_FEES_PREF_LABELS: Record<string, string> = {
+  separate: "I can pay application fees separately",
+  "include-in-service": "I prefer to include them in the service",
 }
 
 function row(label: string, value: string): string {
@@ -52,6 +60,13 @@ function sectionTitle(title: string): string {
   return `<p style="margin:20px 0 8px;font-size:14px;font-weight:700;color:#111;">${escapeHtml(title)}</p>`
 }
 
+function toGpa(score: string, maxScore: string): string {
+  const s = Number(score)
+  const m = Number(maxScore)
+  if (!Number.isFinite(s) || !Number.isFinite(m) || m <= 0) return ""
+  return (Math.round(((s / m) * 4) * 100) / 100).toFixed(2)
+}
+
 export function buildProposalEmailBody(data: ProposalItalyData): string {
   const sp = data.studentProfile
   const prefs = data.studyPreferences
@@ -65,17 +80,16 @@ export function buildProposalEmailBody(data: ProposalItalyData): string {
 
   const profileRows = [
     row("Current status", sp.currentStatus),
-    row("Highest degree obtained", sp.highestDegreeObtained),
+    row("Academic level", sp.academicLevel),
+    row("Obtained diploma", sp.obtainedDiploma?.length ? sp.obtainedDiploma.join(", ") : ""),
     row("Field of previous studies", sp.fieldOfPreviousStudies),
     row("Year of graduation", sp.yearOfGraduation),
     row("Current occupation", sp.currentOccupation),
-    row("English level", sp.englishLevel),
-    row("English certificate", sp.englishCertificate),
-    row("Other languages", sp.otherLanguages?.length ? sp.otherLanguages.join(", ") : ""),
+    row("Languages", sp.languages?.length ? sp.languages.join(", ") : ""),
     row("Note", sp.note),
   ].filter(Boolean)
 
-  const degreeLabel = prefs.country === "Italy" && prefs.targetDegreeLevel
+  const degreeLabel = prefs.targetDegreeLevel
     ? (DEGREE_LABELS[prefs.targetDegreeLevel] || prefs.targetDegreeLevel)
     : ""
   const svc = data.services
@@ -85,16 +99,18 @@ export function buildProposalEmailBody(data: ProposalItalyData): string {
   ].filter(Boolean)
 
   const prefsRows = [
-    row("Country", prefs.country),
     ...(degreeLabel ? [row("Target degree level", degreeLabel)] : []),
     row("Intended intake", prefs.intendedIntake),
     row("Field of study (primary)", prefs.fieldOfStudyPrimary),
     row("Alternative field", prefs.alternativeField),
-    row("Specific details", prefs.specificDetailsFieldOfStudy),
-    row("English-taught programs", prefs.englishTaughtOnly ? (ENGLISH_LABELS[prefs.englishTaughtOnly] || prefs.englishTaughtOnly) : ""),
-    row("Dependent on scholarship", prefs.scholarshipDependent ? (SCHOLARSHIP_DEP_LABELS[prefs.scholarshipDependent] || prefs.scholarshipDependent) : ""),
-    row("Can pay application fees", prefs.canPayApplicationFees ? (APP_FEES_LABELS[prefs.canPayApplicationFees] || prefs.canPayApplicationFees) : ""),
-    row("Scholarship & regional strategy", prefs.scholarshipStrategy?.length ? prefs.scholarshipStrategy.join(", ") : ""),
+    row("Program language", prefs.programLanguages?.length ? prefs.programLanguages.join(", ") : ""),
+    row("How do you plan to finance your studies?", prefs.financingPlan ? (FINANCING_PLAN_LABELS[prefs.financingPlan] || prefs.financingPlan) : ""),
+    row("Blocked account available", prefs.blockedAccount ? (YES_NO_LABELS[prefs.blockedAccount] || prefs.blockedAccount) : ""),
+    row("Financial support from abroad", prefs.hasAbroadSupport ? (YES_NO_LABELS[prefs.hasAbroadSupport] || prefs.hasAbroadSupport) : ""),
+    row("Abroad support details", prefs.abroadSupportDetails),
+    row("Financial guarantor", prefs.financialGuarantor ? (GUARANTOR_LABELS[prefs.financialGuarantor] || prefs.financialGuarantor) : ""),
+    row("Application fees preference", prefs.applicationFeesPreference ? (APP_FEES_PREF_LABELS[prefs.applicationFeesPreference] || prefs.applicationFeesPreference) : ""),
+    row("Available budget", prefs.projectBudget),
     row("City preference", prefs.cityPreferenceType ? (CITY_LABELS[prefs.cityPreferenceType] || prefs.cityPreferenceType) : ""),
     row("Preferred city / university", prefs.preferredCityUniversity),
   ].filter(Boolean)
@@ -102,6 +118,36 @@ export function buildProposalEmailBody(data: ProposalItalyData): string {
   const tableStyle = "width:100%;border-collapse:collapse;font-family:Arial,sans-serif;"
   const table = (rows: string[]) =>
     rows.length ? `<table style="${tableStyle}">${rows.join("")}</table>` : ""
+  const academicRecordsRows = (sp.academicRecords || [])
+    .map((record, idx) => {
+      const gpa = toGpa(record.score, record.maxScore)
+      return row(
+        `Academic record ${idx + 1}`,
+        [
+          record.diploma ? `Diploma: ${record.diploma}` : "",
+          record.score ? `Score: ${record.score}` : "",
+          record.maxScore ? `Max Score: ${record.maxScore}` : "",
+          gpa ? `GPA: ${gpa}` : "",
+        ]
+          .filter(Boolean)
+          .join(" | ")
+      )
+    })
+    .filter(Boolean)
+  const languageRows = (sp.languageRecords || [])
+    .map((record, idx) =>
+      row(
+        `Language ${idx + 1}`,
+        [
+          record.language ? `Language: ${record.language}` : "",
+          record.level ? `Level: ${record.level}` : "",
+          record.certificate ? `Certificate: ${record.certificate}` : "",
+        ]
+          .filter(Boolean)
+          .join(" | ")
+      )
+    )
+    .filter(Boolean)
 
   return `
 <!DOCTYPE html>
@@ -117,6 +163,8 @@ export function buildProposalEmailBody(data: ProposalItalyData): string {
 
   ${studentInfoRows.length ? sectionTitle("Student information") + table(studentInfoRows) : ""}
   ${profileRows.length ? sectionTitle("Student profile") + table(profileRows) : ""}
+  ${academicRecordsRows.length ? sectionTitle("Academic records") + table(academicRecordsRows) : ""}
+  ${languageRows.length ? sectionTitle("Languages details") + table(languageRows) : ""}
   ${prefsRows.length ? sectionTitle("Study preferences") + table(prefsRows) : ""}
   ${servicesRows.length ? sectionTitle("Services") + table(servicesRows) : ""}
 

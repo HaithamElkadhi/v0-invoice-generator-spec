@@ -1,6 +1,17 @@
 import { NextResponse } from "next/server"
 
 const AIRTABLE_API_URL = "https://api.airtable.com/v0"
+const AIRTABLE_BASE_ID = "appkqvTuc8F0AhWPp"
+
+type StudentSource = "Lead" | "Prospect"
+type StudentRecord = {
+  id: string
+  source: StudentSource
+  fullName: string
+  email: string
+  phone: string
+  nationality: string
+}
 
 // Map Airtable field names to our shape (handles common naming variants)
 function mapLeadFields(fields: Record<string, unknown>): {
@@ -26,64 +37,67 @@ function mapLeadFields(fields: Record<string, unknown>): {
 
 export async function GET() {
   const token = process.env.AIRTABLE_TOKEN
-  const baseId = process.env.AIRTABLE_BASE_ID_2
 
-  if (!token || !baseId) {
+  if (!token) {
     return NextResponse.json(
       {
         error:
-          "Airtable leads base is not configured. Set AIRTABLE_TOKEN and AIRTABLE_BASE_ID_2 in .env.local",
+          "Airtable token is not configured. Set AIRTABLE_TOKEN in .env.local",
       },
       { status: 500 }
     )
   }
 
   try {
-    const leads: Array<{ id: string; fullName: string; email: string; phone: string; nationality: string }> = []
-    let offset: string | undefined
+    const fetchTable = async (tableName: "Leads" | "Prospects", source: StudentSource): Promise<StudentRecord[]> => {
+      const students: StudentRecord[] = []
+      let offset: string | undefined
 
-    do {
-      const url = new URL(`${AIRTABLE_API_URL}/${baseId}/Leads`)
-      url.searchParams.set("pageSize", "100")
-      if (offset) url.searchParams.set("offset", offset)
+      do {
+        const url = new URL(`${AIRTABLE_API_URL}/${AIRTABLE_BASE_ID}/${tableName}`)
+        url.searchParams.set("pageSize", "100")
+        if (offset) url.searchParams.set("offset", offset)
 
-      const response = await fetch(url.toString(), {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+        const response = await fetch(url.toString(), {
+          headers: { Authorization: `Bearer ${token}` },
+        })
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        return NextResponse.json(
-          {
-            error:
-              errorData.error?.message || "Failed to fetch leads from Airtable",
-          },
-          { status: response.status }
-        )
-      }
-
-      const data = await response.json()
-      const records = data.records || []
-
-      for (const record of records) {
-        const fields = record.fields || {}
-        const mapped = mapLeadFields(fields)
-        if (mapped.fullName) {
-          leads.push({
-            id: record.id,
-            ...mapped,
-          })
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error?.message || `Failed to fetch ${tableName} from Airtable`)
         }
-      }
 
-      offset = data.offset
-    } while (offset)
+        const data = await response.json()
+        const records = data.records || []
 
-    return NextResponse.json({ leads })
+        for (const record of records) {
+          const fields = record.fields || {}
+          const mapped = mapLeadFields(fields)
+          if (mapped.fullName) {
+            students.push({
+              id: `${tableName}-${record.id}`,
+              source,
+              ...mapped,
+            })
+          }
+        }
+
+        offset = data.offset
+      } while (offset)
+
+      return students
+    }
+
+    const [leads, prospects] = await Promise.all([
+      fetchTable("Leads", "Lead"),
+      fetchTable("Prospects", "Prospect"),
+    ])
+
+    return NextResponse.json({ leads: [...leads, ...prospects] })
   } catch (error) {
     console.error("Fetch leads failed:", error)
     return NextResponse.json(
-      { error: "Failed to fetch leads" },
+      { error: error instanceof Error ? error.message : "Failed to fetch leads" },
       { status: 500 }
     )
   }
