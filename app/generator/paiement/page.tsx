@@ -52,7 +52,7 @@ function normalizePaymentMethod(value: string): PaymentMethod {
   if (normalized.includes("bank") || normalized.includes("transfer")) return "bank_transfer"
   if (normalized.includes("card")) return "credit_card"
   if (normalized.includes("mobile")) return "mobile_money"
-  if (normalized.includes("paypal")) return "paypal"
+  if (normalized.includes("paypal")) return "other"
   if (normalized.includes("cash") || normalized.includes("espece") || normalized.includes("espèce")) return "cash"
   return "other"
 }
@@ -67,12 +67,12 @@ function parseAmount(value: string): number {
 function normalizeInvoicePaymentMethods(value: string): PaymentMethodsSelection {
   const normalized = value.trim().toLowerCase()
   if (normalized.includes("paypal")) {
-    return { paypal: true, bankTransfer: false, other: false }
+    return { bankTransferItaly: false, bankTransferTunisia: false, other: true }
   }
   if (normalized.includes("bank") || normalized.includes("transfer")) {
-    return { paypal: false, bankTransfer: true, other: false }
+    return { bankTransferItaly: true, bankTransferTunisia: false, other: false }
   }
-  return { paypal: false, bankTransfer: false, other: true }
+  return { bankTransferItaly: false, bankTransferTunisia: false, other: true }
 }
 
 function formatDate(value: string): string {

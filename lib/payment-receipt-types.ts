@@ -3,7 +3,6 @@ import { COMPANY_INFO, type InvoiceCurrency, formatInvoiceCurrency } from "./inv
 export type PaymentMethod =
   | "bank_transfer"
   | "cash"
-  | "paypal"
   | "credit_card"
   | "mobile_money"
   | "other"
@@ -25,7 +24,6 @@ export interface PaymentReceiptData {
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   bank_transfer: "Bank Transfer",
   cash: "Cash",
-  paypal: "PayPal",
   credit_card: "Credit Card",
   mobile_money: "Mobile Money",
   other: "Other",

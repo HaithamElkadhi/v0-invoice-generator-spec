@@ -8,8 +8,8 @@ export interface InvoiceItem {
 export type InvoiceCurrency = "EUR" | "USD" | "TND"
 
 export interface PaymentMethodsSelection {
-  paypal: boolean
-  bankTransfer: boolean
+  bankTransferItaly: boolean
+  bankTransferTunisia: boolean
   other: boolean
 }
 
@@ -44,14 +44,24 @@ export const COMPANY_INFO = {
   logoUrl: getPictureUrl(PICTURE_LABELS.LogoApp),
 } as const
 
-export const PAYPAL_EMAIL = "contact@jeexpert-study.com" as const
-
-export const BANK_DETAILS = {
+/** Intesa Sanpaolo (Italy) */
+export const BANK_DETAILS_IT = {
   accountHolder: "Haitham ELKADHI",
   codiceFiscale: "LKDHHM94E25Z352S",
   iban: "IT70 Y030 6915 2241 0000 0008 290",
   bic: "BCITITMM",
   bank: "Intesa Sanpaolo",
+} as const
+
+/** Tunisia (TND) — ABC Bank */
+export const BANK_DETAILS_TN = {
+  bank: "ABC Bank",
+  accountType: "Compte courant en TND",
+  beneficiary: "SOCIETE JEEXPERT",
+  address: "Rue du Lac Annecy, Lac I",
+  rib: "28000043081100000186",
+  iban: "TN5928000043081100000186",
+  swiftBic: "ABCOTNTT001",
 } as const
 
 export const BRAND_COLORS = {

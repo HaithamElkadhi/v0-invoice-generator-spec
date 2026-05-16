@@ -76,8 +76,8 @@ export default function InvoicePage() {
     discountPercentage: 0,
     discountReason: "",
     paymentMethods: {
-      paypal: false,
-      bankTransfer: false,
+      bankTransferItaly: true,
+      bankTransferTunisia: true,
       other: false,
     },
   })
@@ -115,10 +115,19 @@ export default function InvoicePage() {
           ? prefill.itemAmount
           : 0
 
-      const safePaymentMethods = prefill.paymentMethods ?? {
-        paypal: false,
-        bankTransfer: false,
-        other: false,
+      const rawPm = prefill.paymentMethods as
+        | {
+            bankTransferItaly?: boolean
+            bankTransferTunisia?: boolean
+            bankTransfer?: boolean
+            other?: boolean
+            paypal?: boolean
+          }
+        | undefined
+      const safePaymentMethods = {
+        bankTransferItaly: Boolean(rawPm?.bankTransferItaly ?? rawPm?.bankTransfer),
+        bankTransferTunisia: Boolean(rawPm?.bankTransferTunisia),
+        other: Boolean(rawPm?.other),
       }
 
       setInvoiceData((prev) => ({

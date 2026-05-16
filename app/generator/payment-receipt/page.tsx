@@ -71,7 +71,6 @@ function isValidPaymentMethod(value: unknown): value is PaymentMethod {
   return (
     value === "bank_transfer" ||
     value === "cash" ||
-    value === "paypal" ||
     value === "credit_card" ||
     value === "mobile_money" ||
     value === "other"
@@ -92,7 +91,12 @@ function parsePrefillData(value: unknown): PaymentReceiptData | null {
     clientEmail: typeof obj.clientEmail === "string" ? obj.clientEmail : "",
     clientPhone: typeof obj.clientPhone === "string" ? obj.clientPhone : "",
     clientAddress: typeof obj.clientAddress === "string" ? obj.clientAddress : "",
-    paymentMethod: isValidPaymentMethod(obj.paymentMethod) ? obj.paymentMethod : "other",
+    paymentMethod:
+      obj.paymentMethod === "paypal"
+        ? "other"
+        : isValidPaymentMethod(obj.paymentMethod)
+          ? obj.paymentMethod
+          : "other",
     currency: isValidCurrency(obj.currency) ? obj.currency : "EUR",
     amount: typeof obj.amount === "number" && Number.isFinite(obj.amount) ? Math.max(0, obj.amount) : 0,
     comment: typeof obj.comment === "string" ? obj.comment : "",

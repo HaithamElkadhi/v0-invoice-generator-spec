@@ -5,8 +5,8 @@ const AIRTABLE_API_URL = "https://api.airtable.com/v0"
 
 function formatPaymentMethods(paymentMethods: PaymentMethodsSelection): string {
   const methods: string[] = []
-  if (paymentMethods.paypal) methods.push("PayPal")
-  if (paymentMethods.bankTransfer) methods.push("Bank Transfer")
+  if (paymentMethods.bankTransferItaly) methods.push("Bank Transfer (Italy)")
+  if (paymentMethods.bankTransferTunisia) methods.push("Bank Transfer (Tunisia)")
   if (paymentMethods.other) methods.push("Other")
   return methods.join(", ") || "—"
 }

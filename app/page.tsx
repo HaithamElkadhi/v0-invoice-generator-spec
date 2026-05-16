@@ -10,6 +10,8 @@ import {
   Mail,
   Menu,
   MessageCircle,
+  BarChart3,
+  Percent,
   Settings,
   Sparkles,
   UserCircle2,
@@ -25,15 +27,21 @@ const NAV_ITEMS = [
   { href: "/generator/proposal-italy", label: "Proposal Italy", icon: FileSpreadsheet, current: false },
   { href: "/generator", label: "Generator", icon: FileText, current: false },
   { href: "/knowledge-hub", label: "Knowledge Hub", icon: BookOpen, current: false },
+  { href: "/kpis", label: "KPIs", icon: BarChart3, current: false },
   { href: "#", label: "CRM", icon: Users, current: false, disabled: true },
   { href: "#", label: "Settings", icon: Settings, current: false, disabled: true },
 ]
 
 const KPIS = [
-  { label: "Active prospects", value: "148", trend: "+12 this week", icon: Users },
-  { label: "Pending proposals", value: "26", trend: "8 require review", icon: FileSpreadsheet },
-  { label: "Emails sent", value: "1,284", trend: "+18% vs last month", icon: Mail },
-  { label: "Applications in progress", value: "39", trend: "11 near submission", icon: CheckCircle2 },
+  {
+    href: "/kpis",
+    label: "Pipeline admission",
+    value: "Live",
+    trend: "KPIs Airtable — section Admission",
+    icon: BarChart3,
+  },
+  { label: "Active customers", value: "—", trend: "Voir module KPIs", icon: Users },
+  { label: "Conversion rate", value: "—", trend: "Voir module KPIs", icon: Percent },
 ]
 
 const MODULES = [
@@ -75,6 +83,14 @@ const MODULES = [
     desc: "Guides and official notes",
     icon: BookOpen,
     accent: "from-blue-500 to-indigo-600",
+    active: true,
+  },
+  {
+    href: "/kpis",
+    label: "KPIs",
+    desc: "Pipeline admission en temps réel (Airtable)",
+    icon: BarChart3,
+    accent: "from-violet-500 to-purple-600",
     active: true,
   },
   {
@@ -201,13 +217,14 @@ export default function HomePage() {
                 </div>
               </section>
 
-              <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {KPIS.map((item) => {
                   const Icon = item.icon
-                  return (
+                  const card = (
                     <article
-                      key={item.label}
-                      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                      className={`rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition ${
+                        "href" in item && item.href ? "hover:-translate-y-0.5 hover:shadow-md" : ""
+                      }`}
                     >
                       <div className="mb-4 flex items-center justify-between">
                         <p className="text-sm font-medium text-slate-500">{item.label}</p>
@@ -219,6 +236,14 @@ export default function HomePage() {
                       <p className="mt-1 text-xs text-slate-500">{item.trend}</p>
                     </article>
                   )
+                  if ("href" in item && item.href) {
+                    return (
+                      <Link key={item.label} href={item.href} className="block">
+                        {card}
+                      </Link>
+                    )
+                  }
+                  return <div key={item.label}>{card}</div>
                 })}
               </section>
 

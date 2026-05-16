@@ -1,5 +1,5 @@
 import type { InvoiceDataWithTotals } from "./invoice-types"
-import { COMPANY_INFO, PAYPAL_EMAIL, BANK_DETAILS, formatInvoiceCurrency } from "./invoice-types"
+import { COMPANY_INFO, BANK_DETAILS_IT, BANK_DETAILS_TN, formatInvoiceCurrency } from "./invoice-types"
 
 function escapeHtml(s: string): string {
   return String(s ?? "")
@@ -17,10 +17,14 @@ function formatDate(dateStr: string): string {
 
 export function buildInvoiceEmailBody(data: InvoiceDataWithTotals): string {
   const paymentLabels: string[] = []
-  if (data.paymentMethods.paypal) paymentLabels.push(`PayPal: ${PAYPAL_EMAIL}`)
-  if (data.paymentMethods.bankTransfer) {
+  if (data.paymentMethods.bankTransferItaly) {
     paymentLabels.push(
-      `Bank transfer – ${BANK_DETAILS.bank}, IBAN: ${BANK_DETAILS.iban}, BIC: ${BANK_DETAILS.bic}, Account: ${BANK_DETAILS.accountHolder}`
+      `Bank transfer (Italy) — ${BANK_DETAILS_IT.bank}, IBAN: ${BANK_DETAILS_IT.iban}, BIC: ${BANK_DETAILS_IT.bic}, Account: ${BANK_DETAILS_IT.accountHolder}, Codice Fiscale: ${BANK_DETAILS_IT.codiceFiscale}`
+    )
+  }
+  if (data.paymentMethods.bankTransferTunisia) {
+    paymentLabels.push(
+      `Bank transfer (Tunisia) — Banque: ${BANK_DETAILS_TN.bank}; Type de compte: ${BANK_DETAILS_TN.accountType}; Bénéficiaire: ${BANK_DETAILS_TN.beneficiary}; Adresse: ${BANK_DETAILS_TN.address}; RIB: ${BANK_DETAILS_TN.rib}; IBAN: ${BANK_DETAILS_TN.iban}; SWIFT/BIC: ${BANK_DETAILS_TN.swiftBic}`
     )
   }
   if (data.paymentMethods.other) paymentLabels.push("Other (see details)")
