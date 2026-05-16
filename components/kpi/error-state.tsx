@@ -18,8 +18,9 @@ export function ErrorState({ message, onRetry }: ErrorStateProps) {
       <p className="mt-2 text-xs text-slate-500">
         Vérifiez que <code className="rounded bg-slate-100 px-1">AIRTABLE_TOKEN</code>,{" "}
         <code className="rounded bg-slate-100 px-1">AIRTABLE_BASE_ID_2</code> et{" "}
-        <code className="rounded bg-slate-100 px-1">AIRTABLE_KPI_TABLE_ID</code> sont définis dans
-        .env.local
+        <code className="rounded bg-slate-100 px-1">AIRTABLE_KPI_TABLE_ID</code> /{" "}
+        <code className="rounded bg-slate-100 px-1">AIRTABLE_APPLICATIONS_TABLE_ID</code> sont définis
+        dans .env.local
       </p>
       <div className="mt-6 flex gap-3">
         <Button onClick={onRetry}>Réessayer</Button>
