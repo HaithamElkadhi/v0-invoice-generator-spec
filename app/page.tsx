@@ -12,6 +12,7 @@ import {
   MessageCircle,
   BarChart3,
   Percent,
+  Wallet,
   Settings,
   Sparkles,
   UserCircle2,
@@ -28,6 +29,7 @@ const NAV_ITEMS = [
   { href: "/generator", label: "Generator", icon: FileText, current: false },
   { href: "/knowledge-hub", label: "Knowledge Hub", icon: BookOpen, current: false },
   { href: "/kpis", label: "KPIs", icon: BarChart3, current: false },
+  { href: "/finance", label: "Finance", icon: Wallet, current: false },
   { href: "#", label: "CRM", icon: Users, current: false, disabled: true },
   { href: "#", label: "Settings", icon: Settings, current: false, disabled: true },
 ]
@@ -91,6 +93,14 @@ const MODULES = [
     desc: "Pipeline admission en temps réel (Airtable)",
     icon: BarChart3,
     accent: "from-violet-500 to-purple-600",
+    active: true,
+  },
+  {
+    href: "/finance",
+    label: "Finance",
+    desc: "Encaissements, devises et tendances paiements",
+    icon: Wallet,
+    accent: "from-emerald-500 to-teal-600",
     active: true,
   },
   {

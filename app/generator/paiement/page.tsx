@@ -34,7 +34,6 @@ type PaiementItem = {
   comment: string
   invoice: Array<{ id?: string; url?: string; filename?: string }>
   proofOfPayment: Array<{ id?: string; url?: string; filename?: string }>
-  lastModified: string
 }
 
 const RECEIPT_PREFILL_STORAGE_KEY = "payment-receipt-prefill-v1"

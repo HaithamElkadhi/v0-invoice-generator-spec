@@ -5,13 +5,14 @@ import Link from "next/link"
 import { ArrowLeft, BarChart3 } from "lucide-react"
 import { AdmissionSection } from "@/components/kpi/admission-section"
 import { ApplicationSection } from "@/components/kpi/application-section"
+import { FinanceSection } from "@/components/finance/finance-section"
 
 type KpiSectionId = "admission" | "application" | "finance" | "operations"
 
 const KPI_SECTIONS: { id: KpiSectionId; label: string; active: boolean }[] = [
   { id: "admission", label: "Admission", active: true },
   { id: "application", label: "Application", active: true },
-  { id: "finance", label: "Finance", active: false },
+  { id: "finance", label: "Finance", active: true },
   { id: "operations", label: "Operations", active: false },
 ]
 
@@ -65,6 +66,7 @@ export function KpisDashboard() {
 
         {activeSection === "admission" && <AdmissionSection />}
         {activeSection === "application" && <ApplicationSection />}
+        {activeSection === "finance" && <FinanceSection />}
       </div>
     </div>
   )

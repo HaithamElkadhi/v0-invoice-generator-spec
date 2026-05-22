@@ -21,7 +21,6 @@ const FIELDS = {
   paymentMethod: "fldRXyV7ll1jgMwyW",
   billingAddress: "fld2HUwf8StFqIMla",
   proofOfPayment: "fldLG0u4INznvhroy",
-  lastModified: "fldjmKO5BXHZVpA4C",
 } as const
 
 type AirtableAttachment = {
@@ -50,7 +49,6 @@ type PaiementRecord = {
   paymentMethod: string
   billingAddress: string
   proofOfPayment: AirtableAttachment[]
-  lastModified: string
 }
 
 function asStringArray(value: unknown): string[] {
@@ -99,7 +97,7 @@ export async function GET() {
       const url = new URL(`${AIRTABLE_API_URL}/${baseId}/${PAIEMENTS_TABLE_ID}`)
       url.searchParams.set("pageSize", "100")
       url.searchParams.set("returnFieldsByFieldId", "true")
-      url.searchParams.set("sort[0][field]", FIELDS.lastModified)
+      url.searchParams.set("sort[0][field]", FIELDS.paymentDate)
       url.searchParams.set("sort[0][direction]", "desc")
 
       Object.values(FIELDS).forEach((fieldId) => {
@@ -162,7 +160,6 @@ export async function GET() {
           paymentMethod: asString(fields[FIELDS.paymentMethod]),
           billingAddress: asString(fields[FIELDS.billingAddress]),
           proofOfPayment: asAttachmentArray(fields[FIELDS.proofOfPayment]),
-          lastModified: asString(fields[FIELDS.lastModified]),
         })
       }
 
