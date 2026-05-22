@@ -8,11 +8,10 @@ import { DashboardSkeleton } from "@/components/kpi/dashboard-skeleton"
 import { ErrorState } from "@/components/kpi/error-state"
 import { KpiAlerts } from "@/components/kpi/kpi-alerts"
 import { KpiConversionRates } from "@/components/kpi/kpi-conversion-rates"
+import { KpiFolderInsight } from "@/components/kpi/kpi-folder-insight"
 import { KpiFunnel } from "@/components/kpi/kpi-funnel"
 import { KpiStageCards } from "@/components/kpi/kpi-stage-cards"
 import { KpiTotalBanner } from "@/components/kpi/kpi-total-banner"
-import { KpiTrendChart } from "@/components/kpi/kpi-trend-chart"
-
 export function AdmissionSection() {
   const { snapshots, loading, error, refetch } = useKpiData(60_000)
   const [refreshing, setRefreshing] = useState(false)
@@ -57,12 +56,12 @@ export function AdmissionSection() {
         refreshing={refreshing}
       />
       <KpiTotalBanner latest={latest} previous={previous} />
-      <KpiStageCards latest={latest} previous={previous} />
+      <KpiStageCards snapshots={snapshots} latest={latest} previous={previous} />
+      <KpiFolderInsight snapshots={snapshots} latest={latest} previous={previous} />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <KpiFunnel snapshot={latest} />
         <KpiConversionRates rates={rates} />
       </div>
-      <KpiTrendChart snapshots={snapshots} />
       <KpiAlerts alerts={alerts} />
     </section>
   )

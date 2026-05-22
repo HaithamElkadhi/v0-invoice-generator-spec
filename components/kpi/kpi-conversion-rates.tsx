@@ -24,7 +24,7 @@ export function KpiConversionRates({ rates }: KpiConversionRatesProps) {
   return (
     <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <h2 className="mb-4 text-base font-semibold text-slate-900">Taux de conversion</h2>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {rates.map((rate) => {
           const badge = healthBadge(rate.health, rate.isCumulative, rate.rate)
           const displayRate =

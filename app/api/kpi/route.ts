@@ -21,6 +21,8 @@ function mapRecord(record: {
     completed: Number(f["Completed"] ?? 0),
     lastChance: Number(f["Last_chance"] ?? 0),
     lost: Number(f["Lost"] ?? 0),
+    originalFolder: Number(f["Original_Folder"] ?? 0),
+    translatedFolder: Number(f["Translated_Folder"] ?? 0),
   }
 }
 

@@ -1,4 +1,4 @@
-import type { Alert, ConversionRate, KpiDelta, KpiSnapshot } from "@/lib/kpi.types"
+import type { Alert, ConversionRate, FolderInsight, KpiDelta, KpiSnapshot } from "@/lib/kpi.types"
 
 export function getDelta(current: number, previous: number): KpiDelta {
   const diff = current - previous
@@ -20,84 +20,98 @@ export function getHealthLabel(rate: number | null): "good" | "warn" | "critical
   return "critical"
 }
 
+/** Lost / Last chance share of total: >20% is bad, not good. */
+export function getAtRiskShareHealthLabel(rate: number | null): "good" | "warn" | "critical" | "na" {
+  if (rate === null) return "na"
+  if (rate > 20) return "critical"
+  if (rate > 10) return "warn"
+  return "good"
+}
+
+export function computeFolderInsight(snap: KpiSnapshot): FolderInsight {
+  return {
+    originalVsEngaged: safeRate(snap.originalFolder, snap.engaged),
+    translatedVsEngaged: safeRate(snap.translatedFolder, snap.engaged),
+    translatedVsAdmitted: safeRate(snap.translatedFolder, snap.admitted),
+    overlapFloor: Math.min(snap.originalFolder, snap.translatedFolder),
+  }
+}
+
+function totalShareRate(
+  snap: KpiSnapshot,
+  numerator: number,
+  healthFn: (rate: number | null) => ConversionRate["health"] = getHealthLabel
+): Pick<ConversionRate, "rate" | "health"> {
+  const rate = safeRate(numerator, snap.totalProspect)
+  return { rate, health: healthFn(rate) }
+}
+
 export function computeConversionRates(snap: KpiSnapshot): ConversionRate[] {
-  const engagedToAdmitted = safeRate(snap.admitted, snap.engaged)
-  const admittedToCompleted = safeRate(snap.completed, snap.admitted)
-  const engagedToCompleted = safeRate(snap.completed, snap.engaged)
-  const totalToEngaged = safeRate(snap.engaged, snap.totalProspect)
-  const totalToCompleted = safeRate(snap.completed, snap.totalProspect)
-  const churnRate = safeRate(snap.lost + snap.lastChance, snap.totalProspect)
+  const admittedToEngaged = safeRate(snap.admitted, snap.engaged)
+  const completedToAdmitted = safeRate(snap.completed, snap.admitted)
+
+  const seriousShare = totalShareRate(snap, snap.serious)
+  const undecidedShare = totalShareRate(snap, snap.undecided)
+  const admittedShare = totalShareRate(snap, snap.admitted)
+  const lostShare = totalShareRate(snap, snap.lost, getAtRiskShareHealthLabel)
+  const lastChanceShare = totalShareRate(snap, snap.lastChance, getAtRiskShareHealthLabel)
 
   return [
     {
-      label: "Potential → Serious",
-      from: "Potential",
-      to: "Serious",
-      rate:
-        snap.potential > 0 && snap.serious <= snap.potential
-          ? safeRate(snap.serious, snap.potential)
-          : null,
-      isCumulative: true,
-      health: "na",
-    },
-    {
-      label: "Serious → Engaged",
+      label: "Serious / Total Prospect",
       from: "Serious",
-      to: "Engaged",
-      rate:
-        snap.serious > 0 && snap.engaged <= snap.serious
-          ? safeRate(snap.engaged, snap.serious)
-          : null,
-      isCumulative: true,
-      health: "na",
+      to: "Total Prospect",
+      rate: seriousShare.rate,
+      isCumulative: false,
+      health: seriousShare.health,
     },
     {
-      label: "Engaged → Admitted",
+      label: "Undecided / Total Prospect",
+      from: "Undecided",
+      to: "Total Prospect",
+      rate: undecidedShare.rate,
+      isCumulative: false,
+      health: undecidedShare.health,
+    },
+    {
+      label: "Admitted / Total Prospect",
+      from: "Admitted",
+      to: "Total Prospect",
+      rate: admittedShare.rate,
+      isCumulative: false,
+      health: admittedShare.health,
+    },
+    {
+      label: "Lost / Total Prospect",
+      from: "Lost",
+      to: "Total Prospect",
+      rate: lostShare.rate,
+      isCumulative: false,
+      health: lostShare.health,
+    },
+    {
+      label: "Last chance / Total Prospect",
+      from: "Last chance",
+      to: "Total Prospect",
+      rate: lastChanceShare.rate,
+      isCumulative: false,
+      health: lastChanceShare.health,
+    },
+    {
+      label: "Admitted / Engaged",
       from: "Engaged",
       to: "Admitted",
-      rate: engagedToAdmitted,
+      rate: admittedToEngaged,
       isCumulative: false,
-      health: getHealthLabel(engagedToAdmitted),
+      health: getHealthLabel(admittedToEngaged),
     },
     {
-      label: "Admitted → Completed",
+      label: "Completed / Admitted",
       from: "Admitted",
       to: "Completed",
-      rate: admittedToCompleted,
+      rate: completedToAdmitted,
       isCumulative: false,
-      health: getHealthLabel(admittedToCompleted),
-    },
-    {
-      label: "Engaged → Completed",
-      from: "Engaged",
-      to: "Completed",
-      rate: engagedToCompleted,
-      isCumulative: false,
-      health: getHealthLabel(engagedToCompleted),
-    },
-    {
-      label: "Total → Engaged",
-      from: "Total",
-      to: "Engaged",
-      rate: totalToEngaged,
-      isCumulative: false,
-      health: getHealthLabel(totalToEngaged),
-    },
-    {
-      label: "Total → Completed",
-      from: "Total",
-      to: "Completed",
-      rate: totalToCompleted,
-      isCumulative: false,
-      health: getHealthLabel(totalToCompleted),
-    },
-    {
-      label: "Churn global (Lost+LC / Total)",
-      from: "Total",
-      to: "Lost+LC",
-      rate: churnRate,
-      isCumulative: false,
-      health: getHealthLabel(churnRate === null ? null : 100 - churnRate),
+      health: getHealthLabel(completedToAdmitted),
     },
   ]
 }
@@ -120,6 +134,25 @@ export function generateAlerts(snap: KpiSnapshot, _prev?: KpiSnapshot): Alert[] 
       title: `${snap.undecided} Undecided — fenêtre de conversion courte`,
       body: "Appel direct ou offre spéciale pour basculer en Engaged avant qu'ils deviennent Last chance.",
       icon: "user-question",
+    })
+  }
+
+  const folderInsight = computeFolderInsight(snap)
+  if (snap.originalFolder > 0 || snap.translatedFolder > 0) {
+    const vsEngaged =
+      snap.engaged > 0 && folderInsight.translatedVsEngaged !== null
+        ? `${folderInsight.translatedVsEngaged}% de ratio traduits/Engaged · ${folderInsight.originalVsEngaged ?? "—"}% originaux/Engaged.`
+        : "Comparer aux Engaged dès qu’ils sont renseignés."
+    const gap =
+      snap.engaged > 0 && snap.translatedFolder < snap.engaged
+        ? ` Écart : ${snap.engaged - snap.translatedFolder} Engaged de plus que de dossiers traduits (si 1 traduction par client).`
+        : ""
+    alerts.push({
+      type:
+        snap.engaged > 0 && snap.translatedFolder < snap.engaged ? "warning" : "info",
+      title: `Dossiers : ${snap.originalFolder} original · ${snap.translatedFolder} traduit`,
+      body: `Compteurs indépendants (chevauchement possible, min. ${folderInsight.overlapFloor} dans les deux). ${vsEngaged}${gap}`,
+      icon: "languages",
     })
   }
 

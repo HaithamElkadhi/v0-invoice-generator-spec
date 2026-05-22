@@ -11,6 +11,17 @@ export interface KpiSnapshot {
   completed: number
   lastChance: number
   lost: number
+  originalFolder: number
+  translatedFolder: number
+}
+
+/** Metrics for overlapping Original / Translated folder counts (not mutually exclusive). */
+export interface FolderInsight {
+  originalVsEngaged: number | null
+  translatedVsEngaged: number | null
+  translatedVsAdmitted: number | null
+  /** Lower bound on folders present in both columns: min(original, translated). */
+  overlapFloor: number
 }
 
 export interface KpiDelta {
